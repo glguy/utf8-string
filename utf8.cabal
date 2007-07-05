@@ -1,0 +1,8 @@
+name: utf8
+version: 1.0
+build-depends: base 
+description: UTF8 encoder/decoder and basic System.IO replacements
+ghc-options: -fno-implicit-prelude
+exposed-modules: Text.UTF8
+Include-dirs:
+Other-Modules:
