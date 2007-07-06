@@ -1,8 +1,9 @@
-name: utf8-string
-version: 1.0
-build-depends: base 
-description: UTF8 encoder/decoder and basic System.IO replacements
-ghc-options: 
-exposed-modules: Codec.Binary.UTF8.String, System.IO.UTF8
-Include-dirs:
-Other-Modules:
+Name: utf8-string
+Version: 0.1
+Build-depends: base
+Description: UTF8 encoder/decoder and basic System.IO replacements
+License: BSD3
+License-file: LICENSE
+Author: Eric Mertens
+Maintainer: emertens@galois.com
+Exposed-modules: Codec.Binary.UTF8.String, System.IO.UTF8
