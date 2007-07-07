@@ -1,6 +1,6 @@
------------------------------------------------------------------------------
+--
 -- |
--- Module      :
+-- Module      :  Codec.Binary.UTF8.String
 -- Copyright   :  (c) Eric Mertens 2007
 -- License     :  BSD3-style (see LICENSE)
 -- 
