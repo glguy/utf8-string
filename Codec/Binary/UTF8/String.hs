@@ -17,7 +17,7 @@ module Codec.Binary.UTF8.String (
   ) where
 
 import Data.Word        (Word8)
-import Data.Bits        ((.|.),(.&.),shiftR,shiftL)
+import Data.Bits        ((.|.),(.&.),shiftL,shiftR)
 import Data.Char        (chr,ord)
 
 default(Int)
