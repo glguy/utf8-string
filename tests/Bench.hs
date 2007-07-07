@@ -1,5 +1,15 @@
 {-# OPTIONS -cpp -fglasgow-exts #-}
 
+{-
+$ ghc --make -O2 Bench.hs -o bench 
+
+$ ./bench 
+Size of test data: 2428k
+Char    Optimal byteString decode
+ 1 0.102  0.109  0.102  0.109  0.102  
+   0.063  0.063  0.070  0.055  0.070        # "decode"   
+-}
+
 --
 -- Benchmark tool.
 -- Compare a function against equivalent code from other libraries for
@@ -53,10 +63,10 @@ import qualified Codec.Binary.UTF8.String as UTF8
 
 main :: IO ()
 main = do
-    force (fps,chars)
+    force (fps,chars,strs)
     printf "# Size of test data: %dk\n" ((floor $ (fromIntegral (B.length fps)) / 1024) :: Int)
     printf "#Char\t Optimal byteString decode\n"
-    run 5 (fps,chars) tests
+    run 5 (fps,chars,strs) tests
 
 --
 -- Measure the difference building an decoded String from
@@ -68,6 +78,9 @@ tests =
     [ ("decode",
         [F ( app UTF8.decode)
         ,F ( app unpackCStringUTF8) ])
+
+    , ("encode",
+        [F ( app UTF8.encode) ])
     ]
 
 
@@ -151,6 +164,9 @@ instance Forceable [a] where
 instance (Forceable a, Forceable b) => Forceable (a,b) where
     force (a,b) = force a >> force b
 
+instance (Forceable a, Forceable b, Forceable c) => Forceable (a,b,c) where
+    force (a,b,c) = force a >> force b >> force c
+
 instance Forceable Int
 instance Forceable Int64
 instance Forceable Bool
@@ -174,13 +190,22 @@ chars   :: [Word8]
 chars   = B.unpack fps
 {-# NOINLINE chars #-}
 
+strs    :: String
+strs    = C.unpack fps
+{-# NOINLINE strs #-}
+
 dict  = "/usr/share/dict/words"
 
 ------------------------------------------------------------------------
 
-type Input = (B.ByteString,[Word8])
+type Input = (B.ByteString,[Word8],String)
 
 class (Eq a, Ord a) => Ap a where app :: (a -> b) -> Input -> b
 
-instance Ap B.ByteString where app f x = f (fst x)
-instance Ap [Word8]      where app f x = f (snd x)
+instance Ap B.ByteString where app f x = f (fst3 x)
+instance Ap [Word8]      where app f x = f (snd3 x)
+instance Ap String       where app f x = f (thd3 x)
+
+fst3 (a,_,_) = a
+snd3 (_,a,_) = a
+thd3 (_,_,a) = a
