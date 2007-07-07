@@ -1,9 +1,17 @@
-Name: utf8-string
-Version: 0.1
-Build-depends: base
-Description: UTF8 encoder/decoder and basic System.IO replacements
-License: BSD3
-License-file: LICENSE
-Author: Eric Mertens
-Maintainer: emertens@galois.com
-Exposed-modules: Codec.Binary.UTF8.String, System.IO.UTF8
+Name:               utf8-string
+Version:            0.1
+Author:             Eric Mertens
+Maintainer:         emertens@galois.com
+License:            BSD3
+License-file:       LICENSE
+Homepage:           http://code.haskell.org/utf8-string/
+Synopsis:           Support for reading and writing UTF8 Strings
+Description:        A UTF8 layer for IO and Strings. The utf8-string
+                    package provides operations for encoding UTF8
+                    strings to Word8 lists and back, and for reading and
+                    writing UTF8 without truncation.
+Category:           Codec
+Build-depends:      base>=1.0
+Ghc-options:        -Wall -Werror -O2
+Exposed-modules:    Codec.Binary.UTF8.String
+                    System.IO.UTF8
