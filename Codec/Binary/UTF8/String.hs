@@ -45,20 +45,6 @@ encode = concatMap (map fromIntegral . go . ord)
                         , 0x80 + ((oc `shiftR` 6) .&. 0x3f)
                         , 0x80 + oc .&. 0x3f
                         ]
-   | oc <= 0x3ffffff  = [ 0xf8 + (oc `shiftR` 24)
-                        , 0x80 + ((oc `shiftR` 18) .&. 0x3f)
-                        , 0x80 + ((oc `shiftR` 12) .&. 0x3f)
-                        , 0x80 + ((oc `shiftR` 6) .&. 0x3f)
-                        , 0x80 + oc .&. 0x3f
-                        ]
-   | oc <= 0x7fffffff = [ 0xfc + (oc `shiftR` 30)
-                        , 0x80 + ((oc `shiftR` 24) .&. 0x3f)
-                        , 0x80 + ((oc `shiftR` 18) .&. 0x3f)
-                        , 0x80 + ((oc `shiftR` 12) .&. 0x3f)
-                        , 0x80 + ((oc `shiftR`  6) .&. 0x3f)
-                        , 0x80 + oc .&. 0x3f
-                        ]
-   | otherwise = error ("Unicode character out of range" ++ show oc)
 
 --
 -- | Decode a UTF8 string packed into a list of Word8 values, directly to String
