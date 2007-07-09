@@ -1,7 +1,7 @@
 import Codec.Binary.UTF8.String
 import Test.HUnit
 
-tests = TestList [test_2, test_3, test_4]
+tests = TestList [test_2, test_3, test_4, test_5]
 
 test_2 = TestLabel "2 Boundary condition test cases" $
   TestList [test_2_1, test_2_2, test_2_3]
@@ -124,6 +124,39 @@ test_4_3 = TestLabel "4.2 Overlong NUL" $
   , assertEqual "4.3.3, " "\xfffd " (decode [0xf0, 0x80, 0x80, 0x80, 0x20])
   , assertEqual "4.3.4, " "\xfffd " (decode [0xf8, 0x80, 0x80, 0x80,0x80,0x20])
   , assertEqual "4.3.5, " "\xfffd "(decode[0xfc,0x80,0x80,0x80,0x80,0x80,0x20])
+  ]
+
+test_5 = TestLabel "Illegal code positions" $
+  TestList [test_5_1, test_5_2, test_5_3]
+
+test_5_1 = TestLabel "5.1 Single UTF-16 surrogates" $
+  TestList $ map TestCase $
+  [ assertEqual "5.1.1, " "\xfffd " (decode [0xed,0xa0,0x80,0x20])
+  , assertEqual "5.1.2, " "\xfffd " (decode [0xed,0xad,0xbf,0x20])
+  , assertEqual "5.1.3, " "\xfffd " (decode [0xed,0xae,0x80,0x20])
+  , assertEqual "5.1.4, " "\xfffd " (decode [0xed,0xaf,0xbf,0x20])
+  , assertEqual "5.1.5, " "\xfffd " (decode [0xed,0xb0,0x80,0x20])
+  , assertEqual "5.1.6, " "\xfffd " (decode [0xed,0xbe,0x80,0x20])
+  , assertEqual "5.1.7, " "\xfffd " (decode [0xed,0xbf,0xbf,0x20])
+  ]
+ 
+test_5_2 = TestLabel "5.2 Paired UTF-16 surrogates" $
+  TestList $ map TestCase $
+  [ assertEqual "5.2.1, " res (decode [0xed,0xa0,0x80,0xed,0xb0,0x80,0x20])
+  , assertEqual "5.2.2, " res (decode [0xed,0xa0,0x80,0xed,0xbf,0xbf,0x20])
+  , assertEqual "5.2.3, " res (decode [0xed,0xad,0xbf,0xed,0xb0,0x80,0x20])
+  , assertEqual "5.2.4, " res (decode [0xed,0xad,0xbf,0xed,0xbf,0xbf,0x20])
+  , assertEqual "5.2.5, " res (decode [0xed,0xae,0x80,0xed,0xb0,0x80,0x20])
+  , assertEqual "5.2.6, " res (decode [0xed,0xae,0x80,0xed,0xbf,0xbf,0x20])
+  , assertEqual "5.2.7, " res (decode [0xed,0xaf,0xbf,0xed,0xb0,0x80,0x20])
+  , assertEqual "5.2.8, " res (decode [0xed,0xaf,0xbf,0xed,0xbf,0xbf,0x20])
+  ]
+  where res = "\xfffd\xfffd "
+ 
+test_5_3 = TestLabel "5.3 Other illegal code positions" $
+  TestList $ map TestCase $
+  [ assertEqual "5.3.1, " "\xfffd " (decode [0xef, 0xbf, 0xbe, 0x20])
+  , assertEqual "5.3.2, " "\xfffd " (decode [0xef, 0xbf, 0xbf, 0x20])
   ]
 
 
