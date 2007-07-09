@@ -1,7 +1,11 @@
 import Codec.Binary.UTF8.String
 import Test.HUnit
 
-tests = TestList [test_2, test_3, test_4, test_5]
+tests = TestList [test_1, test_2, test_3, test_4, test_5]
+
+test_1 = TestLabel "1 Some correct UTF-8 text" $
+  TestCase $ assertEqual "kosme, " "\x03ba\x1f79\x03c3\x03bc\x03b5 "
+    (decode [0xce,0xba,0xe1,0xbd,0xb9,0xcf,0x83,0xce,0xbc,0xce,0xb5,0x20])
 
 test_2 = TestLabel "2 Boundary condition test cases" $
   TestList [test_2_1, test_2_2, test_2_3]
