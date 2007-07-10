@@ -1,5 +1,10 @@
 import Codec.Binary.UTF8.String
 import Test.HUnit
+import System.Exit (exitFailure)
+import Control.Monad (when)
+
+main = do counts <- runTestTT tests
+          when (errors counts > 0 || failures counts > 0) exitFailure
 
 tests = TestList [test_1, test_2, test_3, test_4, test_5]
 
