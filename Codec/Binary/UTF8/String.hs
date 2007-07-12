@@ -14,6 +14,8 @@
 module Codec.Binary.UTF8.String (
       encode
     , decode
+    , encodeString
+    , decodeString
   ) where
 
 import Data.Word        (Word8)
@@ -21,6 +23,16 @@ import Data.Bits        ((.|.),(.&.),shiftL,shiftR)
 import Data.Char        (chr,ord)
 
 default(Int)
+
+-- | Encode a string using 'encode' and store the result in a 'String'.
+encodeString :: String -> String
+encodeString xs = map (toEnum . fromEnum) (encode xs)
+
+-- | Decode a string using 'decode' using a 'String' as input.
+-- | This is not safe but it is necessary if UTF-8 encoded text
+-- | has been loaded into a 'String' prior to being decoded.
+decodeString :: String -> String
+decodeString xs = decode (map (toEnum . fromEnum) xs)
 
 replacement_character :: Char
 replacement_character = '\xfffd'
