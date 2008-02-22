@@ -66,13 +66,20 @@ decode [    ] = ""
 decode (c:cs)
   | c < 0x80  = chr (fromEnum c) : decode cs
   | c < 0xc0  = replacement_character : decode cs
-  | c < 0xe0  = multi_byte 1 0x1f 0x80
+  | c < 0xe0  = multi1
   | c < 0xf0  = multi_byte 2 0xf  0x800
   | c < 0xf8  = multi_byte 3 0x7  0x10000
   | c < 0xfc  = multi_byte 4 0x3  0x200000
   | c < 0xfe  = multi_byte 5 0x1  0x4000000
   | otherwise = replacement_character : decode cs
   where
+    multi1 = case cs of
+      c1 : ds | c1 .&. 0xc0 == 0x80 ->
+        let d = ((fromEnum c .&. 0x1f) `shiftL` 6) .|.  fromEnum (c1 .&. 0x3f)
+        in if d >= 0x000080 then toEnum d : decode ds
+                            else replacement_character : decode ds
+      _ -> replacement_character : decode cs
+
     multi_byte :: Int -> Word8 -> Int -> [Char]
     multi_byte i mask overlong = aux i cs (fromEnum (c .&. mask))
       where
