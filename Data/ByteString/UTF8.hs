@@ -103,6 +103,10 @@ take n bs = fst (splitAt n bs)
 drop :: Int -> B.ByteString -> B.ByteString
 drop n bs = snd (splitAt n bs)
 
+-- | Split a string into two parts:  the first is the longest prefix
+-- that contains only characters that satisfy the predicate; the second
+-- part is the rest of the string.
+-- Invalid characters are passed as '\0xFFFD' to the predicate.
 span :: (Char -> Bool) -> B.ByteString -> (B.ByteString, B.ByteString)
 span p bs = loop 0 bs
   where loop a cs = case decode cs of
@@ -110,6 +114,10 @@ span p bs = loop 0 bs
                                                   loop (a+n) (B.drop n cs)
                       _ -> B.splitAt a bs
 
+-- | Split a string into two parts:  the first is the longest prefix
+-- that contains only characters that do not satisfy the predicate; the second
+-- part is the rest of the string.
+-- Invalid characters are passed as '\0xFFFD' to the predicate.
 break :: (Char -> Bool) -> B.ByteString -> (B.ByteString, B.ByteString)
 break p bs = span (not . p) bs
 
