@@ -13,12 +13,14 @@ module Data.ByteString.UTF8
   , foldl
   , foldr
   , length
+  , lines
+  , lines'
   ) where
 
 import Data.Bits
 import Data.Word
 import qualified Data.ByteString as B
-import Prelude hiding (take,drop,splitAt,span,break,foldr,foldl,length)
+import Prelude hiding (take,drop,splitAt,span,break,foldr,foldl,length,lines)
 
 import Codec.Binary.UTF8.String(encode)
 
@@ -138,4 +140,26 @@ length b = loop 0 b
   where loop n xs = case decode xs of
                       Just (_,m) -> loop (n+1) (B.drop m xs)
                       Nothing -> n
+
+-- | Split a string into a list of lines.
+-- Lines are termianted by '\n' or the end of the string.
+-- This function removes the terminators.
+-- See also 'lines\''.
+lines :: B.ByteString -> [B.ByteString]
+lines bs | B.null bs  = []
+lines bs = case B.elemIndex 10 bs of
+             Just x -> let (xs,ys) = B.splitAt x bs
+                       in xs : lines (B.tail ys)
+             Nothing -> [bs]
+
+-- | Split a string into a list of lines.
+-- Lines are termianted by '\n' or the end of the string.
+-- This function preserves the terminators.
+-- See also 'lines'.
+lines' :: B.ByteString -> [B.ByteString]
+lines' bs | B.null bs  = []
+lines' bs = case B.elemIndex 10 bs of
+              Just x -> let (xs,ys) = B.splitAt (x+1) bs
+                        in xs : lines' ys
+              Nothing -> [bs]
 
