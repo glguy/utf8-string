@@ -12,14 +12,17 @@ module Data.ByteString.UTF8
   , toString
   , foldl
   , foldr
+  , length
   ) where
 
 import Data.Bits
 import Data.Word
 import qualified Data.ByteString as B
-import Prelude hiding (take,drop,splitAt,span,break,foldr,foldl)
+import Prelude hiding (take,drop,splitAt,span,break,foldr,foldl,length)
 
 import Codec.Binary.UTF8.String(encode)
+
+default(Int)
 
 -- | Converts a Haskell string into a UTF8 encoded bytestring.
 fromString :: String -> B.ByteString
@@ -37,7 +40,7 @@ replacement_char (Just x) = x
 
 -- | Try to extract a character from a byte string.
 -- Returns 'Nothing' if there are no more bytes in the byte string.
--- Otherwise it returns a (possibly) decoded character and the number of
+-- Otherwise, it returns a (possibly) decoded character and the number of
 -- bytes used in its representation.
 decode :: B.ByteString -> Maybe (Maybe Char,Int)
 decode bs = do (c,cs) <- B.uncons bs
@@ -47,7 +50,7 @@ decode bs = do (c,cs) <- B.uncons bs
   choose c cs
     | c < 0x80  = (Just $ toEnum $ fromEnum c, 1)
     | c < 0xc0  = (Nothing, 1)
-    | c < 0xe0  = multi_byte 0x0000080 1 1 cs (mask c 0x1f)
+    | c < 0xe0  = bytes2 c cs
     | c < 0xf0  = multi_byte 0x0000800 2 1 cs (mask c 0x0f)
     | c < 0xf8  = multi_byte 0x0010000 3 1 cs (mask c 0x07)
     | c < 0xfc  = multi_byte 0x0200000 4 1 cs (mask c 0x03)
@@ -56,6 +59,14 @@ decode bs = do (c,cs) <- B.uncons bs
 
   mask :: Word8 -> Word8 -> Int
   mask c m = fromEnum (c .&. m)
+
+  bytes2 :: Word8 -> B.ByteString -> (Maybe Char, Int)
+  bytes2 c cs =
+    case B.uncons cs of
+      Just (r,_) | r .&. 0xc0 == 0x80 ->
+        let d = shiftL (mask c 0x0f) 6 .|. fromEnum (r .&. 0x3f)
+        in if d >= 0x80 then (Just (toEnum d), 2) else (Nothing, 2)
+      _ -> (Nothing, 1)
 
   multi_byte :: Int -> Int -> Int -> B.ByteString -> Int -> (Maybe Char,Int)
   multi_byte overlong 0 m _ acc
@@ -76,10 +87,10 @@ decode bs = do (c,cs) <- B.uncons bs
 -- | Split after a given number of characters.
 -- Negative values are treated as if they are 0.
 splitAt :: Int -> B.ByteString -> (B.ByteString,B.ByteString)
-splitAt n bs = loop 0 n bs
+splitAt x bs = loop 0 x bs
   where loop a n _ | n <= 0 = B.splitAt a bs
         loop a n bs1 = case decode bs1 of
-                         Just (_,x) -> loop (a+x) (n-1) (B.drop x bs1)
+                         Just (_,y) -> loop (a+y) (n-1) (B.drop y bs1)
                          Nothing    -> (bs, B.empty)
 
 -- | @take n s@ returns the first @n@ characters of @s@.
@@ -103,9 +114,10 @@ break :: (Char -> Bool) -> B.ByteString -> (B.ByteString, B.ByteString)
 break p bs = span (not . p) bs
 
 -- | Get the first character of a byte string, if any.
+-- Malformed characters are replaced by '\0xFFFD'.
 uncons :: B.ByteString -> Maybe (Char,B.ByteString)
 uncons bs = do (c,n) <- decode bs
-               return (replacement_char c, drop n bs)
+               return (replacement_char c, B.drop n bs)
 
 -- | Traverse a bytestring (right biased).
 foldr :: (Char -> a -> a) -> a -> B.ByteString -> a
@@ -114,8 +126,15 @@ foldr cons nil cs = case uncons cs of
                       Nothing     -> nil
 
 -- | Traverse a bytestring (left biased).
+-- This fuction is strict in the acumulator.
 foldl :: (a -> Char -> a) -> a -> B.ByteString -> a
 foldl add acc cs  = case uncons cs of
-                      Just (a,as) -> foldl add (add acc a) as
+                      Just (a,as) -> let v = add acc a
+                                     in seq v (foldl add v as)
                       Nothing     -> acc
+
+-- | Counts the number of characters encoded in the bytestring.
+-- Note that this includes replacment characters.
+length :: B.ByteString -> Int
+length b = foldl (\n _ -> n + 1) 0 b
 
