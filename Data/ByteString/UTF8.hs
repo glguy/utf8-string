@@ -9,12 +9,14 @@ module Data.ByteString.UTF8
   , span
   , break
   , fromString
+  , foldl
+  , foldr
   ) where
 
 import Data.Bits
 import Data.Word
 import qualified Data.ByteString as B
-import Prelude hiding (take,drop,splitAt,span,break)
+import Prelude hiding (take,drop,splitAt,span,break,foldr,foldl)
 
 import Codec.Binary.UTF8.String(encode)
 
@@ -97,3 +99,13 @@ break p bs = span (not . p) bs
 uncons :: B.ByteString -> Maybe (Char,B.ByteString)
 uncons bs = do (c,n) <- decode bs
                return (replacement_char c, drop n bs)
+
+foldr :: (Char -> a -> a) -> a -> B.ByteString -> a
+foldr cons nil cs = case uncons cs of
+                      Just (a,as) -> cons a (foldr cons nil as)
+                      Nothing     -> nil
+
+foldl :: (a -> Char -> a) -> a -> B.ByteString -> a
+foldl add acc cs  = case uncons cs of
+                      Just (a,as) -> foldl add (add acc a) as
+                      Nothing     -> acc
