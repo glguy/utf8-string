@@ -22,8 +22,6 @@ import Prelude hiding (take,drop,splitAt,span,break,foldr,foldl,length)
 
 import Codec.Binary.UTF8.String(encode)
 
-default(Int)
-
 -- | Converts a Haskell string into a UTF8 encoded bytestring.
 fromString :: String -> B.ByteString
 fromString xs = B.pack (encode xs)
@@ -136,5 +134,8 @@ foldl add acc cs  = case uncons cs of
 -- | Counts the number of characters encoded in the bytestring.
 -- Note that this includes replacment characters.
 length :: B.ByteString -> Int
-length b = foldl (\n _ -> n + 1) 0 b
+length b = loop 0 b
+  where loop n xs = case decode xs of
+                      Just (_,m) -> loop (n+1) (B.drop m xs)
+                      Nothing -> n
 
