@@ -9,6 +9,7 @@ module Data.ByteString.UTF8
   , span
   , break
   , fromString
+  , toString
   , foldl
   , foldr
   ) where
@@ -23,6 +24,11 @@ import Codec.Binary.UTF8.String(encode)
 -- | Converts a Haskell string into a UTF8 encoded bytestring.
 fromString :: String -> B.ByteString
 fromString xs = B.pack (encode xs)
+
+-- | Convert a UTF8 encoded bytestring into a Haskell string.
+-- Invalid characters are replaced with '\xFFFD'.
+toString :: B.ByteString -> String
+toString bs = foldr (:) [] bs
 
 -- | Replaces malformed characters with '\xFFFD' (zero width space)
 replacement_char :: Maybe Char -> Char
@@ -96,16 +102,20 @@ span p bs = loop 0 bs
 break :: (Char -> Bool) -> B.ByteString -> (B.ByteString, B.ByteString)
 break p bs = span (not . p) bs
 
+-- | Get the first character of a byte string, if any.
 uncons :: B.ByteString -> Maybe (Char,B.ByteString)
 uncons bs = do (c,n) <- decode bs
                return (replacement_char c, drop n bs)
 
+-- | Traverse a bytestring (right biased).
 foldr :: (Char -> a -> a) -> a -> B.ByteString -> a
 foldr cons nil cs = case uncons cs of
                       Just (a,as) -> cons a (foldr cons nil as)
                       Nothing     -> nil
 
+-- | Traverse a bytestring (left biased).
 foldl :: (a -> Char -> a) -> a -> B.ByteString -> a
 foldl add acc cs  = case uncons cs of
                       Just (a,as) -> foldl add (add acc a) as
                       Nothing     -> acc
+
