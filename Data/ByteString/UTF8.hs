@@ -63,16 +63,16 @@ decode bs = do (c,cs) <- B.uncons bs
   mask :: Word8 -> Word8 -> Int
   mask c m = fromEnum (c .&. m)
 
+  combine :: Int -> Word8 -> Int
+  combine acc r = shiftL acc 6 .|. fromEnum (r .&. 0x3f)
+
   bytes2 :: Word8 -> B.ByteString -> (Char, Int)
   bytes2 c cs =
     case B.uncons cs of
       Just (r,_) | r .&. 0xc0 == 0x80 ->
-        let d = combine (mask c 0x0f) r
+        let d = mask c 0x1f `combine` r
         in if d >= 0x80 then (toEnum d, 2) else (replacement_char, 2)
       _ -> (replacement_char, 1)
-
-  combine :: Int -> Word8 -> Int
-  combine acc r = shiftL acc 6 .|. fromEnum (r .&. 0x3f)
 
   multi_byte :: Int -> Int -> Int -> B.ByteString -> Int -> (Char,Int)
   multi_byte overlong 0 m _ acc
