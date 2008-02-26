@@ -41,54 +41,69 @@ replacement_char = '\xfffd'
 -- Returns 'Nothing' if there are no more bytes in the byte string.
 -- Otherwise, it returns a decoded character and the number of
 -- bytes used in its representation.
--- Errors are replaced by a zero-width blank space '\0xFFFD'.
+-- Errors are replaced by character '\0xFFFD'.
 
 -- XXX: Should we combine sequences of errors into a single replacement
 -- character?
 decode :: B.ByteString -> Maybe (Char,Int)
 decode bs = do (c,cs) <- B.uncons bs
-               return (choose c cs)
+               return (choose (fromEnum c) cs)
   where
-  choose :: Word8 -> B.ByteString -> (Char, Int)
+  choose :: Int -> B.ByteString -> (Char, Int)
   choose c cs
     | c < 0x80  = (toEnum $ fromEnum c, 1)
     | c < 0xc0  = (replacement_char, 1)
-    | c < 0xe0  = bytes2 c cs
-    | c < 0xf0  = multi_byte 0x0000800 2 1 cs (mask c 0x0f)
-    | c < 0xf8  = multi_byte 0x0010000 3 1 cs (mask c 0x07)
-    | c < 0xfc  = multi_byte 0x0200000 4 1 cs (mask c 0x03)
-    | c < 0xfe  = multi_byte 0x4000000 5 1 cs (mask c 0x01)
+    | c < 0xe0  = bytes2 (mask c 0x1f) cs
+    | c < 0xf0  = bytes3 (mask c 0x0f) cs
+    | c < 0xf8  = bytes4 (mask c 0x07) cs
     | otherwise = (replacement_char, 1)
 
-  mask :: Word8 -> Word8 -> Int
+  mask :: Int -> Int -> Int
   mask c m = fromEnum (c .&. m)
 
   combine :: Int -> Word8 -> Int
   combine acc r = shiftL acc 6 .|. fromEnum (r .&. 0x3f)
 
-  bytes2 :: Word8 -> B.ByteString -> (Char, Int)
-  bytes2 c cs =
-    case B.uncons cs of
-      Just (r,_) | r .&. 0xc0 == 0x80 ->
-        let d = mask c 0x1f `combine` r
-        in if d >= 0x80 then (toEnum d, 2) else (replacement_char, 2)
+  follower :: Int -> Word8 -> Maybe Int
+  follower acc r | r .&. 0xc0 == 0x80 = Just (combine acc r)
+  follower _ _                        = Nothing
+
+  {-# INLINE get_follower #-}
+  get_follower :: Int -> B.ByteString -> Maybe (Int, B.ByteString)
+  get_follower acc cs = do (x,xs) <- B.uncons cs
+                           acc1 <- follower acc x
+                           return (acc1,xs)
+
+  bytes2 :: Int -> B.ByteString -> (Char, Int)
+  bytes2 c cs = case get_follower c cs of
+                  Just (d, _) | d >= 0x80  -> (toEnum d, 2)
+                              | otherwise  -> (replacement_char, 1)
+                  _ -> (replacement_char, 1)
+
+  bytes3 :: Int -> B.ByteString -> (Char, Int)
+  bytes3 c cs =
+    case get_follower c cs of
+      Just (d1, cs1) ->
+        case get_follower d1 cs1 of
+          Just (d, _) | d >= 0x800
+                    && (d < 0xd800 || d > 0xdfff) -> (toEnum d, 3)
+                      | otherwise -> (replacement_char, 3)
+          _ -> (replacement_char, 2)
       _ -> (replacement_char, 1)
 
-  multi_byte :: Int -> Int -> Int -> B.ByteString -> Int -> (Char,Int)
-  multi_byte overlong 0 m _ acc
-    | overlong <= acc && acc <= 0x10ffff &&
-      (acc < 0xd800 || 0xdfff < acc)     &&
-      (acc < 0xfffe || 0xffff < acc)      = (toEnum acc,m)
-    | otherwise                           = (replacement_char,m)
+  bytes4 :: Int -> B.ByteString -> (Char, Int)
+  bytes4 c cs =
+    case get_follower c cs of
+      Just (d1, cs1) ->
+        case get_follower d1 cs1 of
+          Just (d2, cs2) ->
+            case get_follower d2 cs2 of
+              Just (d,_) | d >= 0x10000 -> (toEnum d, 4)
+                         | otherwise    -> (replacement_char, 4)
+              _ -> (replacement_char, 3)
+          _ -> (replacement_char, 2)
+      _ -> (replacement_char, 1)
 
-  multi_byte overlong n m rs acc =
-    case B.uncons rs of
-      Just (r,rs1)
-        | r .&. 0xc0 == 0x80 -> multi_byte overlong (n-1) (m+1) rs1
-                              $ combine acc r
-
-        | otherwise -> (replacement_char,m)
-      Nothing -> (replacement_char,m)
 
 -- | Split after a given number of characters.
 -- Negative values are treated as if they are 0.
