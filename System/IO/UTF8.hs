@@ -27,17 +27,16 @@ module System.IO.UTF8 (
     , hPutStrLn
   ) where
 
-import Prelude           (String, (=<<), (.), map, toEnum, fromEnum, Read, Show(..))
-
-import System.IO         (Handle, IO, FilePath)
+import Control.Monad (liftM)
+import Data.Char (ord, chr)
+import Data.Word (Word8)
+import Prelude (String, ($), (=<<), (>>=), (.), map, toEnum, fromEnum, Read,
+                Show(..))
+import System.IO (Handle, IO, FilePath)
 import qualified System.IO as IO
 
 import Codec.Binary.UTF8.String (encode, decode)
 
-import Data.Char (ord, chr)
-import Data.Word (Word8)
-
-import Control.Monad (liftM)
 
 -- | Encode a string in UTF8 form.
 encodeString :: String -> String
@@ -82,21 +81,24 @@ readLn = IO.readIO =<< getLine
 -- returns the contents of the file as a UTF8 string.
 -- The file is read lazily, on demand, as with 'getContents'.
 readFile :: FilePath -> IO String
-readFile n = liftM decodeString (IO.readFile n)
+readFile n = liftM decodeString (IO.openBinaryFile n IO.ReadMode >>=
+                                 IO.hGetContents)
 
 -- | The computation 'writeFile' @file str@ function writes the UTF8 string @str@,
 -- to the file @file@.
 writeFile :: FilePath -> String -> IO ()
-writeFile n c = IO.writeFile n (encodeString c)
+writeFile n c = IO.withBinaryFile n IO.WriteMode $ \ h ->
+                    hPutStr h $ encodeString c
 
 -- | The computation 'appendFile' @file str@ function appends the UTF8 string @str@,
 -- to the file @file@.
 appendFile :: FilePath -> String -> IO ()
-appendFile n c = IO.appendFile n (encodeString c)
+appendFile n c = IO.withBinaryFile n IO.AppendMode $ \h ->
+                    hPutStr h $ encodeString c
 
 -- | Read a UTF8 line from a Handle
 hGetLine :: Handle -> IO String
-hGetLine h = liftM decodeString (IO.hGetLine h)
+hGetLine h = liftM decodeString $ IO.hGetLine h
 
 -- | Lazily read a UTF8 string from a Handle
 hGetContents :: Handle -> IO String
