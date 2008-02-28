@@ -12,8 +12,8 @@ Description:        A UTF8 layer for IO and Strings. The utf8-string
                     writing UTF8 without truncation.
 Category:           Codec
 Build-depends:      base>=1.0, bytestring>=0.9
-Ghc-options:        -Wall -Werror -O2
+Ghc-options:        -W -O2
+Build-type:         Simple
 Exposed-modules:    Codec.Binary.UTF8.String
                     System.IO.UTF8
                     Data.ByteString.UTF8
-Build-type:         Simple
