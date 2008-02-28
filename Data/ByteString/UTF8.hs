@@ -1,3 +1,7 @@
+-- | This module provides fast, validated encoding and decoding functions
+--   between 'ByteString's and 'String's. It does not exactly match the
+--   output of the Codec.Binary.UTF8.String output for invalid encodings
+--   as the number of replacement characters is sometimes longer.
 module Data.ByteString.UTF8
   ( B.ByteString
   , decode
