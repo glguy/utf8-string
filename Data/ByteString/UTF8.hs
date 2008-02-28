@@ -85,8 +85,8 @@ decode bs = do (c,cs) <- B.uncons bs
     case get_follower c cs of
       Just (d1, cs1) ->
         case get_follower d1 cs1 of
-          Just (d, _) | d >= 0x800
-                    && (d < 0xd800 || d > 0xdfff) -> (toEnum d, 3)
+          Just (d, _) | (d >= 0x800 && d < 0xd800) ||
+                        (d > 0xdfff && d < 0xfffe) -> (toEnum d, 3)
                       | otherwise -> (replacement_char, 3)
           _ -> (replacement_char, 2)
       _ -> (replacement_char, 1)
