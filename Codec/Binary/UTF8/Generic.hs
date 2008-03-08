@@ -168,17 +168,13 @@ splitAt x bs = loop 0 x bs
 
 -- | @take n s@ returns the first @n@ characters of @s@.
 -- If @s@ has less then @n@ characters, then we return the whole of @s@.
-{-# SPECIALIZE take :: Int   -> B.ByteString -> B.ByteString #-}
-{-# SPECIALIZE take :: Int64 -> L.ByteString -> L.ByteString #-}
-{-# SPECIALIZE take :: Int   -> [Word8]      -> [Word8] #-}
+{-# INLINE take #-}
 take :: UTF8Bytes b s => s -> b -> b
 take n bs = fst (splitAt n bs)
 
 -- | @drop n s@ returns the @s@ without its first @n@ characters.
 -- If @s@ has less then @n@ characters, then we return the an empty string.
-{-# SPECIALIZE drop :: Int   -> B.ByteString -> B.ByteString #-}
-{-# SPECIALIZE drop :: Int64 -> L.ByteString -> L.ByteString #-}
-{-# SPECIALIZE drop :: Int   -> [Word8]      -> [Word8] #-}
+{-# INLINE drop #-}
 drop :: UTF8Bytes b s => s -> b -> b
 drop n bs = snd (splitAt n bs)
 
@@ -199,9 +195,7 @@ span p bs = loop 0 bs
 -- that contains only characters that do not satisfy the predicate; the second
 -- part is the rest of the string.
 -- Invalid characters are passed as '\0xFFFD' to the predicate.
-{-# SPECIALIZE break :: (Char -> Bool) -> B.ByteString -> (B.ByteString,B.ByteString) #-}
-{-# SPECIALIZE break :: (Char -> Bool) -> L.ByteString -> (L.ByteString,L.ByteString) #-}
-{-# SPECIALIZE break :: (Char -> Bool) -> [Word8] -> ([Word8],[Word8])    #-}
+{-# INLINE break #-}
 break :: UTF8Bytes b s => (Char -> Bool) -> b -> (b,b)
 break p bs = span (not . p) bs
 
