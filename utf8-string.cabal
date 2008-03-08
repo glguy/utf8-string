@@ -15,6 +15,7 @@ Build-depends:      base>=1.0, bytestring>=0.9
 Ghc-options:        -W -O2
 Build-type:         Simple
 Exposed-modules:    Codec.Binary.UTF8.String
+Exposed-modules:    Codec.Binary.UTF8.Generic
                     System.IO.UTF8
                     Data.ByteString.UTF8
                     Data.ByteString.Lazy.UTF8
