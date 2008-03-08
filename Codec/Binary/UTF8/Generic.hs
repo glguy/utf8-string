@@ -201,9 +201,7 @@ break p bs = span (not . p) bs
 
 -- | Get the first character of a byte string, if any.
 -- Malformed characters are replaced by '\0xFFFD'.
-{-# SPECIALIZE uncons :: B.ByteString -> Maybe (Char,B.ByteString) #-}
-{-# SPECIALIZE uncons :: L.ByteString -> Maybe (Char,L.ByteString) #-}
-{-# SPECIALIZE uncons :: [Word8]     -> Maybe (Char,[Word8]) #-}
+{-# INLINE uncons #-}
 uncons :: UTF8Bytes b s => b -> Maybe (Char,b)
 uncons bs = do (c,n) <- decode bs
                return (c, bdrop n bs)
