@@ -11,6 +11,8 @@ module Data.String.UTF8
   , break
   , fromString
   , toString
+  , fromRep
+  , toRep
   , foldl
   , foldr
   , length
@@ -25,6 +27,12 @@ import Codec.Binary.UTF8.Generic (UTF8Bytes)
 -- | The type of strngs that are represented using tthe UTF8 encoding.
 -- The parameters is the type of the container for the representation.
 newtype UTF8 rep  = Str rep
+
+fromRep :: string -> UTF8 string
+fromRep = Str
+
+toRep :: UTF8 string -> string
+toRep (Str x) = x
 
 -- | Converts a Haskell string into a UTF8 encoded string.
 -- Complexity: linear.
