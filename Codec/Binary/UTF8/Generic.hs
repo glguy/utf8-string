@@ -189,7 +189,7 @@ span :: UTF8Bytes b s => (Char -> Bool) -> b -> (b,b)
 span p bs = loop 0 bs
   where loop a cs = case decode cs of
                       Just (c,n) | p c -> loop (a+n) (bdrop n cs)
-                      _ -> splitAt a bs
+                      _ -> bsplit a bs
 
 -- | Split a string into two parts:  the first is the longest prefix
 -- that contains only characters that do not satisfy the predicate; the second
