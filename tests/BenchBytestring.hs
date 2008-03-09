@@ -24,20 +24,14 @@ main3 = do putStrLn "Speed: [Word8]"
 main4 = do putStrLn "Correctness: Data.ByteString"
            print (encodeDecodeTest enc)
 
-app [] ys = ys
-app (x:xs) ys = x : app xs ys
-
-infixr `app`
-
 encodeDecodeTest :: (Char -> String) -> String
 encodeDecodeTest f =
-     filter (\x -> [x] /= f x) legal_codepoints
+     filter (\x -> x `seq` [x] /= f x) legal_codepoints
   ++ filter (\x -> [UTF8.replacement_char] /= f x) illegal_codepoints
   where
-    legal_codepoints    = ['\0'..'\xd7ff'] `app` ['\xe000'..'\xfffd']
-                       `app` ['\x10000'..'\x10ffff']
+    legal_codepoints    = ['\0'..'\xd7ff'] ++ ['\xe000'..'\xfffd']
+                       ++ ['\x10000'..'\x10ffff']
     illegal_codepoints  = '\xffff' : '\xfffe' : ['\xd800'..'\xdfff']
-
 
 enc x = UTF8.toString (UTF8.fromString [x] :: UTF8.UTF8 S.ByteString)
 
