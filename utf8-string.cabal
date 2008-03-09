@@ -17,5 +17,6 @@ Build-type:         Simple
 Exposed-modules:    Codec.Binary.UTF8.String
                     Codec.Binary.UTF8.Generic
                     System.IO.UTF8
+                    Data.String.UTF8
                     Data.ByteString.UTF8
                     Data.ByteString.Lazy.UTF8
