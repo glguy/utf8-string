@@ -34,6 +34,7 @@ import Codec.Binary.UTF8.String(encode)
 
 class (Num s, Ord s) => UTF8Bytes b s | b -> s where
   bsplit        :: s -> b -> (b,b)
+  bdrop         :: s -> b -> b
   buncons       :: b -> Maybe (Word8,b)
   elemIndex     :: Word8 -> b -> Maybe s
   empty         :: b
@@ -43,6 +44,7 @@ class (Num s, Ord s) => UTF8Bytes b s | b -> s where
 
 instance UTF8Bytes B.ByteString Int where
   bsplit        = B.splitAt
+  bdrop         = B.drop
   buncons       = B.uncons
   elemIndex     = B.elemIndex
   empty         = B.empty
@@ -52,6 +54,7 @@ instance UTF8Bytes B.ByteString Int where
 
 instance UTF8Bytes L.ByteString Int64 where
   bsplit        = L.splitAt
+  bdrop         = L.drop
   buncons       = L.uncons
   elemIndex     = L.elemIndex
   empty         = L.empty
@@ -61,6 +64,7 @@ instance UTF8Bytes L.ByteString Int64 where
 
 instance UTF8Bytes [Word8] Int where
   bsplit          = List.splitAt
+  bdrop           = List.drop
   buncons (x:xs)  = Just (x,xs)
   buncons []      = Nothing
   elemIndex x xs  = List.elemIndex (toEnum (fromEnum x)) xs
@@ -68,9 +72,6 @@ instance UTF8Bytes [Word8] Int where
   null            = List.null
   pack            = id
   tail            = List.tail
-
-bdrop :: (UTF8Bytes b s) => s -> b -> b
-bdrop s b = snd (bsplit s b)
 
 -- | Converts a Haskell string into a UTF8 encoded bytestring.
 {-# SPECIALIZE fromString :: String -> B.ByteString  #-}
