@@ -26,14 +26,14 @@ main4 = do putStrLn "Correctness: Data.ByteString"
 
 encodeDecodeTest :: String
 encodeDecodeTest =
-     filter (\x -> expect x x) legal_codepoints
-  ++ filter (expect (UTF8.replacement_char)) illegal_codepoints
+     filter (\x -> enc x /= [x]) legal_codepoints
+  ++ filter (\x -> enc x /= [UTF8.replacement_char]) illegal_codepoints
   where
     legal_codepoints    = ['\0'..'\xd7ff'] ++ ['\xe000'..'\xfffd']
                        ++ ['\x10000'..'\x10ffff']
     illegal_codepoints  = '\xffff' : '\xfffe' : ['\xd800'..'\xdfff']
 
-    expect y x = UTF8.toString (UTF8.fromString [x] :: UTF8.UTF8 S.ByteString)
-                  /= [y]
+{-# INLINE enc #-}
+enc x = UTF8.toString (UTF8.fromString [x] :: UTF8.UTF8 S.ByteString)
 
 
