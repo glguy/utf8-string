@@ -4,7 +4,7 @@
 --   output of the Codec.Binary.UTF8.String output for invalid encodings
 --   as the number of replacement characters is sometimes longer.
 module Codec.Binary.UTF8.Generic
-  ( UTF8Bytes()
+  ( UTF8Bytes(..)
   , decode
   , replacement_char
   , uncons

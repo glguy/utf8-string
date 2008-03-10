@@ -1,24 +1,33 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# OPTIONS_GHC -fallow-undecidable-instances #-}
 module Data.String.UTF8
-  ( UTF8
+  ( -- * Representation
+    UTF8
   , UTF8Bytes()
+  , fromString
+  , toString
+  , fromRep
+  , toRep
   , G.replacement_char
+
+  -- * Character based operations
   , uncons
   , splitAt
   , take
   , drop
   , span
   , break
-  , fromString
-  , toString
-  , fromRep
-  , toRep
   , foldl
   , foldr
   , length
   , lines
   , lines'
+
+  -- * Representation based operations
+  , decode
+  , byteSplitAt
+  , byteTake
+  , byteDrop
   ) where
 
 import Prelude hiding (take,drop,span,break,foldl,foldr,length,lines,splitAt)
@@ -51,10 +60,29 @@ toString (Str xs) = G.toString xs
 
 -- | Split after a given number of characters.
 -- Negative values are treated as if they are 0.
+-- See also 'bytesSplitAt'.
 splitAt :: UTF8Bytes string index
         => index -> UTF8 string -> (UTF8 string, UTF8 string)
 splitAt x (Str bs)  = case G.splitAt x bs of
                         (s1,s2) -> (Str s1, Str s2)
+
+-- | Split after a given number of bytes in the underlying representation.
+-- See also 'splitAt'.
+byteSplitAt :: UTF8Bytes string index
+             => index -> UTF8 string -> (UTF8 string, UTF8 string)
+byteSplitAt n (Str x) = case G.bsplit n x of
+                          (as,bs) -> (Str as, Str bs)
+
+-- | Take only the given number of bytes from the underlying representation.
+-- See also 'take'.
+byteTake :: UTF8Bytes string index => index -> UTF8 string -> UTF8 string
+byteTake n (Str x) = Str (fst (G.bsplit n x))
+
+-- | Drop the given number of bytes from the underlying representation.
+-- See also 'drop'.
+byteDrop :: UTF8Bytes string index => index -> UTF8 string -> UTF8 string
+byteDrop n (Str x) = Str (snd (G.bsplit n x))
+
 
 -- | @take n s@ returns the first @n@ characters of @s@.
 -- If @s@ has less then @n@ characters, then we return the whole of @s@.
@@ -90,6 +118,13 @@ uncons :: UTF8Bytes string index
        => UTF8 string -> Maybe (Char, UTF8 string)
 uncons (Str x)  = do (c,y) <- G.uncons x
                      return (c, Str y)
+
+-- | Extract the first character for the underlying representation,
+-- if one is avaialble.  It also returns the number of bytes used
+-- in the representation of the character.
+-- See also 'uncons', 'dropBytes'.
+decode :: UTF8Bytes string index => UTF8 string -> Maybe (Char, index)
+decode (Str x)  = G.decode x
 
 -- | Traverse a bytestring (right biased).
 foldr :: UTF8Bytes string index => (Char -> a -> a) -> a -> UTF8 string -> a
