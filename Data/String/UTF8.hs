@@ -1,4 +1,5 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# OPTIONS_GHC -fallow-undecidable-instances #-}
 module Data.String.UTF8
   ( UTF8
   , UTF8Bytes()
@@ -26,7 +27,10 @@ import Codec.Binary.UTF8.Generic (UTF8Bytes)
 
 -- | The type of strngs that are represented using tthe UTF8 encoding.
 -- The parameters is the type of the container for the representation.
-newtype UTF8 rep  = Str rep
+newtype UTF8 string = Str string deriving (Eq,Ord)   -- XXX: Is this OK?
+
+instance UTF8Bytes string index => Show (UTF8 string) where
+  show x = show (toString x)
 
 fromRep :: string -> UTF8 string
 fromRep = Str
