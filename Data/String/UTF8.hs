@@ -81,7 +81,7 @@ byteTake n (Str x) = Str (fst (G.bsplit n x))
 -- | Drop the given number of bytes from the underlying representation.
 -- See also 'drop'.
 byteDrop :: UTF8Bytes string index => index -> UTF8 string -> UTF8 string
-byteDrop n (Str x) = Str (snd (G.bsplit n x))
+byteDrop n (Str x) = Str (G.bdrop n x)
 
 
 -- | @take n s@ returns the first @n@ characters of @s@.
