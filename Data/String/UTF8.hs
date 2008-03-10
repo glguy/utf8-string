@@ -24,13 +24,15 @@ module Data.String.UTF8
   , lines'
 
   -- * Representation based operations
+  , null
   , decode
   , byteSplitAt
   , byteTake
   , byteDrop
   ) where
 
-import Prelude hiding (take,drop,span,break,foldl,foldr,length,lines,splitAt)
+import Prelude hiding (null,take,drop,span,break
+                      ,foldl,foldr,length,lines,splitAt)
 import qualified Codec.Binary.UTF8.Generic as G
 import Codec.Binary.UTF8.Generic (UTF8Bytes)
 
@@ -57,6 +59,10 @@ fromString xs = Str (G.fromString xs)
 -- Complexity: linear.
 toString :: UTF8Bytes string index => UTF8 string -> String
 toString (Str xs) = G.toString xs
+
+-- | Checks if there are no more bytes in the underlying representation.
+null :: UTF8Bytes string index => UTF8 string -> Bool
+null (Str x) = G.null x
 
 -- | Split after a given number of characters.
 -- Negative values are treated as if they are 0.
