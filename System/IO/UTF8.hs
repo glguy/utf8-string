@@ -88,13 +88,13 @@ readFile n = liftM decodeString (IO.openBinaryFile n IO.ReadMode >>=
 -- to the file @file@.
 writeFile :: FilePath -> String -> IO ()
 writeFile n c = IO.withBinaryFile n IO.WriteMode $ \ h ->
-                    hPutStr h $ encodeString c
+                    IO.hPutStr h $ encodeString c
 
 -- | The computation 'appendFile' @file str@ function appends the UTF8 string @str@,
 -- to the file @file@.
 appendFile :: FilePath -> String -> IO ()
 appendFile n c = IO.withBinaryFile n IO.AppendMode $ \h ->
-                    hPutStr h $ encodeString c
+                    IO.hPutStr h $ encodeString c
 
 -- | Read a UTF8 line from a Handle
 hGetLine :: Handle -> IO String
