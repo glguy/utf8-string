@@ -4,7 +4,7 @@ Author:             Eric Mertens
 Maintainer:         emertens@galois.com
 License:            BSD3
 License-file:       LICENSE
-Homepage:           http://code.haskell.org/utf8-string/
+Homepage:           http://github.com/glguy/utf8-string/
 Synopsis:           Support for reading and writing UTF8 Strings
 Description:        A UTF8 layer for IO and Strings. The utf8-string
                     package provides operations for encoding UTF8
