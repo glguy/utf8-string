@@ -22,6 +22,7 @@ module System.IO.UTF8 (
     , readFile
     , writeFile
     , appendFile
+    , interact
     , getContents
     , hGetLine
     , hGetContents
@@ -120,3 +121,5 @@ hPutStrLn h s = IO.hPutStrLn h (encodeString s)
 getContents :: IO String
 getContents = liftM decodeString IO.getContents
 
+interact :: (String -> String) -> IO ()
+interact f = IO.interact (encodeString . f . decodeString)
