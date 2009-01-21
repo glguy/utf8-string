@@ -36,6 +36,7 @@ import Prelude (String, (=<<), (.), map, Enum(toEnum, fromEnum), Read,
                 Show(..))
 import System.IO (Handle, IO, FilePath, IOMode(AppendMode, ReadMode, WriteMode))
 import qualified System.IO as IO
+import Control.Exception (bracket)
 
 import Codec.Binary.UTF8.String (encode, decode)
 
@@ -83,7 +84,7 @@ openBinaryFile :: FilePath -> IOMode -> IO Handle
 openBinaryFile n m = IO.openBinaryFile (encodeString n) m
 
 withBinaryFile :: FilePath -> IOMode -> (Handle -> IO a) -> IO a
-withBinaryFile n m f = IO.withBinaryFile (encodeString n) m f
+withBinaryFile n m f = bracket (openBinaryFile n m) IO.hClose f
 
 -- | The 'readFile' function reads a file and
 -- returns the contents of the file as a UTF8 string.

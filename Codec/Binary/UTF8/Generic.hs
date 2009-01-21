@@ -32,6 +32,10 @@ import Prelude hiding (take,drop,splitAt,span,break,foldr,foldl,length,lines,nul
 
 import Codec.Binary.UTF8.String(encode)
 
+#ifdef BYTESTRING_IN_BASE
+import Data.ByteString.Base (unsafeHead, unsafeTail)
+#endif
+
 class (Num s, Ord s) => UTF8Bytes b s | b -> s where
   bsplit        :: s -> b -> (b,b)
   bdrop         :: s -> b -> b
@@ -45,7 +49,7 @@ class (Num s, Ord s) => UTF8Bytes b s | b -> s where
 instance UTF8Bytes B.ByteString Int where
   bsplit        = B.splitAt
   bdrop         = B.drop
-  buncons       = B.uncons
+  buncons       = unconsB
   elemIndex     = B.elemIndex
   empty         = B.empty
   null          = B.null
@@ -55,7 +59,7 @@ instance UTF8Bytes B.ByteString Int where
 instance UTF8Bytes L.ByteString Int64 where
   bsplit        = L.splitAt
   bdrop         = L.drop
-  buncons       = L.uncons
+  buncons       = unconsL
   elemIndex     = L.elemIndex
   empty         = L.empty
   null          = L.null
@@ -267,3 +271,20 @@ lines' bs = case elemIndex 10 bs of
                         in xs : lines' ys
               Nothing -> [bs]
 
+-----------
+-- Compatibility functions for base-2
+
+unconsB :: B.ByteString -> Maybe (Word8,B.ByteString)
+unconsL :: L.ByteString -> Maybe (Word8,L.ByteString)
+
+#ifdef BYTESTRING_IN_BASE
+unconsB bs | B.null bs = Nothing
+           | otherwise = Just (unsafeHead bs, unsafeTail bs)
+
+unconsL bs = case L.toChunks bs of
+    (x:xs) | not (B.null x)     -> Just (unsafeHead x, L.fromChunks (unsafeTail x:xs))
+    _                           -> Nothing
+#else
+unconsB = B.uncons
+unconsL = L.uncons
+#endif

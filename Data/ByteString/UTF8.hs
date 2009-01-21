@@ -27,6 +27,7 @@ import qualified Data.ByteString as B
 import Prelude hiding (take,drop,splitAt,span,break,foldr,foldl,length,lines)
 
 import Codec.Binary.UTF8.String(encode)
+import Codec.Binary.UTF8.Generic (buncons)
 
 -- | Converts a Haskell string into a UTF8 encoded bytestring.
 fromString :: String -> B.ByteString
@@ -50,7 +51,7 @@ replacement_char = '\xfffd'
 -- XXX: Should we combine sequences of errors into a single replacement
 -- character?
 decode :: B.ByteString -> Maybe (Char,Int)
-decode bs = do (c,cs) <- B.uncons bs
+decode bs = do (c,cs) <- buncons bs
                return (choose (fromEnum c) cs)
   where
   choose :: Int -> B.ByteString -> (Char, Int)
@@ -74,7 +75,7 @@ decode bs = do (c,cs) <- B.uncons bs
 
   {-# INLINE get_follower #-}
   get_follower :: Int -> B.ByteString -> Maybe (Int, B.ByteString)
-  get_follower acc cs = do (x,xs) <- B.uncons cs
+  get_follower acc cs = do (x,xs) <- buncons cs
                            acc1 <- follower acc x
                            return (acc1,xs)
 
