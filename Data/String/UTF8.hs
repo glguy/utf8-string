@@ -1,5 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# OPTIONS_GHC -fallow-undecidable-instances #-}
+{-# LANGUAGE MultiParamTypeClasses, UndecidableInstances #-}
 module Data.String.UTF8
   ( -- * Representation
     UTF8
