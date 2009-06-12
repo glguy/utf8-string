@@ -1,4 +1,14 @@
--- | This module provides fast, validated encoding and decoding functions
+--
+-- |
+-- Module      :  Data.ByteString.UTF8
+-- Copyright   :  (c) Iavor S. Diatchki 2009
+-- License     :  BSD3-style (see LICENSE)
+--
+-- Maintainer  :  emertens@galois.com
+-- Stability   :  experimental
+-- Portability :  portable
+--
+--   This module provides fast, validated encoding and decoding functions
 --   between 'ByteString's and 'String's. It does not exactly match the
 --   output of the Codec.Binary.UTF8.String output for invalid encodings
 --   as the number of replacement characters is sometimes longer.

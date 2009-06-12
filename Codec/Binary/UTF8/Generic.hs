@@ -1,8 +1,14 @@
 {-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies, FlexibleInstances #-}
--- | This module provides fast, validated encoding and decoding functions
---   between 'ByteString's and 'String's. It does not exactly match the
---   output of the Codec.Binary.UTF8.String output for invalid encodings
---   as the number of replacement characters is sometimes longer.
+--
+-- |
+-- Module      :  Codec.Binary.UTF8.Generic
+-- Copyright   :  (c) Iavor S. Diatchki 2009
+-- License     :  BSD3-style (see LICENSE)
+--
+-- Maintainer  :  emertens@galois.com
+-- Stability   :  experimental
+-- Portability :  portable
+--
 module Codec.Binary.UTF8.Generic
   ( UTF8Bytes(..)
   , decode

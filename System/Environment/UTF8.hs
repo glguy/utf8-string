@@ -1,3 +1,15 @@
+--
+-- |
+-- Module      :  System.Environment.UTF8
+-- Copyright   :  (c) Eric Mertens 2009
+-- License     :  BSD3-style (see LICENSE)
+--
+-- Maintainer:    emertens@galois.com
+-- Stability   :  experimental
+-- Portability :  portable
+--
+-- Support for UTF-8 based environment manipulation
+--
 module System.Environment.UTF8
   (getArgs, getProgName, getEnv, withArgs, withProgName, getEnvironment)
   where
