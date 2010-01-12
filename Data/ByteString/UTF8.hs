@@ -130,12 +130,12 @@ splitAt x bs = loop 0 x bs
                          Nothing    -> (bs, B.empty)
 
 -- | @take n s@ returns the first @n@ characters of @s@.
--- If @s@ has less then @n@ characters, then we return the whole of @s@.
+-- If @s@ has less than @n@ characters, then we return the whole of @s@.
 take :: Int -> B.ByteString -> B.ByteString
 take n bs = fst (splitAt n bs)
 
 -- | @drop n s@ returns the @s@ without its first @n@ characters.
--- If @s@ has less then @n@ characters, then we return the an empty string.
+-- If @s@ has less than @n@ characters, then we return an empty string.
 drop :: Int -> B.ByteString -> B.ByteString
 drop n bs = snd (splitAt n bs)
 
@@ -169,7 +169,7 @@ foldr cons nil cs = case uncons cs of
                       Nothing     -> nil
 
 -- | Traverse a bytestring (left biased).
--- This fuction is strict in the acumulator.
+-- This function is strict in the accumulator.
 foldl :: (a -> Char -> a) -> a -> B.ByteString -> a
 foldl add acc cs  = case uncons cs of
                       Just (a,as) -> let v = add acc a
@@ -177,7 +177,7 @@ foldl add acc cs  = case uncons cs of
                       Nothing     -> acc
 
 -- | Counts the number of characters encoded in the bytestring.
--- Note that this includes replacment characters.
+-- Note that this includes replacement characters.
 length :: B.ByteString -> Int
 length b = loop 0 b
   where loop n xs = case decode xs of
@@ -185,8 +185,8 @@ length b = loop 0 b
                       Nothing -> n
 
 -- | Split a string into a list of lines.
--- Lines are termianted by '\n' or the end of the string.
--- Empty line may not be terminated by the end of the string.
+-- Lines are terminated by '\n' or the end of the string.
+-- Empty lines may not be terminated by the end of the string.
 -- See also 'lines\''.
 lines :: B.ByteString -> [B.ByteString]
 lines bs | B.null bs  = []
@@ -196,8 +196,8 @@ lines bs = case B.elemIndex 10 bs of
              Nothing -> [bs]
 
 -- | Split a string into a list of lines.
--- Lines are termianted by '\n' or the end of the string.
--- Empty line may not be terminated by the end of the string.
+-- Lines are terminated by '\n' or the end of the string.
+-- Empty lines may not be terminated by the end of the string.
 -- This function preserves the terminators.
 -- See also 'lines'.
 lines' :: B.ByteString -> [B.ByteString]

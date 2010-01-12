@@ -45,8 +45,8 @@ import Prelude hiding (null,take,drop,span,break
 import qualified Codec.Binary.UTF8.Generic as G
 import Codec.Binary.UTF8.Generic (UTF8Bytes)
 
--- | The type of strngs that are represented using the UTF8 encoding.
--- The parameters is the type of the container for the representation.
+-- | The type of strings that are represented using the UTF8 encoding.
+-- The parameter is the type of the container for the representation.
 newtype UTF8 string = Str string deriving (Eq,Ord)   -- XXX: Is this OK?
 
 instance UTF8Bytes string index => Show (UTF8 string) where
@@ -100,12 +100,12 @@ byteDrop n (Str x) = Str (G.bdrop n x)
 
 
 -- | @take n s@ returns the first @n@ characters of @s@.
--- If @s@ has less then @n@ characters, then we return the whole of @s@.
+-- If @s@ has less than @n@ characters, then we return the whole of @s@.
 take :: UTF8Bytes string index => index -> UTF8 string -> UTF8 string
 take n (Str bs) = Str (G.take n bs)
 
 -- | @drop n s@ returns the @s@ without its first @n@ characters.
--- If @s@ has less then @n@ characters, then we return the an empty string.
+-- If @s@ has less than @n@ characters, then we return an empty string.
 drop :: UTF8Bytes string index => index -> UTF8 string -> UTF8 string
 drop n (Str bs) = Str (G.drop n bs)
 
@@ -135,7 +135,7 @@ uncons (Str x)  = do (c,y) <- G.uncons x
                      return (c, Str y)
 
 -- | Extract the first character for the underlying representation,
--- if one is avaialble.  It also returns the number of bytes used
+-- if one is available.  It also returns the number of bytes used
 -- in the representation of the character.
 -- See also 'uncons', 'dropBytes'.
 decode :: UTF8Bytes string index => UTF8 string -> Maybe (Char, index)
@@ -146,26 +146,26 @@ foldr :: UTF8Bytes string index => (Char -> a -> a) -> a -> UTF8 string -> a
 foldr cons nil (Str cs) = G.foldr cons nil cs
 
 -- | Traverse a bytestring (left biased).
--- This fuction is strict in the accumulator.
+-- This function is strict in the accumulator.
 foldl :: UTF8Bytes string index => (a -> Char -> a) -> a -> UTF8 string -> a
 foldl add acc (Str cs)  = G.foldl add acc cs
 
 -- | Counts the number of characters encoded in the bytestring.
--- Note that this includes replacment characters.
+-- Note that this includes replacement characters.
 -- The function is linear in the number of bytes in the representation.
 length :: UTF8Bytes string index => UTF8 string -> index
 length (Str b) = G.length b
 
 -- | Split a string into a list of lines.
--- Lines are termianted by '\n' or the end of the string.
--- Empty line may not be terminated by the end of the string.
+-- Lines are terminated by '\n' or the end of the string.
+-- Empty lines may not be terminated by the end of the string.
 -- See also 'lines\''.
 lines :: UTF8Bytes string index => UTF8 string -> [UTF8 string]
 lines (Str b) = map Str (G.lines b)   -- XXX: unnecessary map
 
 -- | Split a string into a list of lines.
--- Lines are termianted by '\n' or the end of the string.
--- Empty line may not be terminated by the end of the string.
+-- Lines are terminated by '\n' or the end of the string.
+-- Empty lines may not be terminated by the end of the string.
 -- This function preserves the terminators.
 -- See also 'lines'.
 lines' :: UTF8Bytes string index => UTF8 string -> [UTF8 string]
