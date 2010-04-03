@@ -16,6 +16,7 @@ module Codec.Binary.UTF8.String (
     , decode
     , encodeString
     , decodeString
+    , encodeChar
     
     , isUTF8Encoded
     , utf8Encode
@@ -40,9 +41,9 @@ decodeString xs = decode (map (toEnum . fromEnum) xs)
 replacement_character :: Char
 replacement_character = '\xfffd'
 
--- | Encode a Haskell String to a list of Word8 values, in UTF8 format.
-encode :: String -> [Word8]
-encode = concatMap (map fromIntegral . go . ord)
+-- | Encode a single Haskell Char to a list of Word8 values, in UTF8 format.
+encodeChar :: Char -> [Word8]
+encodeChar = map fromIntegral . go . ord
  where
   go oc
    | oc <= 0x7f       = [oc]
@@ -60,6 +61,11 @@ encode = concatMap (map fromIntegral . go . ord)
                         , 0x80 + ((oc `shiftR` 6) .&. 0x3f)
                         , 0x80 + oc .&. 0x3f
                         ]
+
+
+-- | Encode a Haskell String to a list of Word8 values, in UTF8 format.
+encode :: String -> [Word8]
+encode = concatMap encodeChar
 
 --
 -- | Decode a UTF8 string packed into a list of Word8 values, directly to String
