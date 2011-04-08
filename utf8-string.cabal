@@ -32,4 +32,6 @@ library
                       System.Environment.UTF8
                       Data.String.UTF8
                       Data.ByteString.UTF8
+                      Data.ByteString.UTF8.IsString
                       Data.ByteString.Lazy.UTF8
+                      Data.ByteString.Lazy.UTF8.IsString
