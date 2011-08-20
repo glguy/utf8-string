@@ -1,4 +1,7 @@
-{-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies, FlexibleInstances #-}
+{-# LANGUAGE CPP, MultiParamTypeClasses, FunctionalDependencies, FlexibleInstances #-}
+#if __GLASGOW_HASKELL__ >= 701
+{-# LANGUAGE Trustworthy #-}
+#endif
 --
 -- |
 -- Module      :  Codec.Binary.UTF8.Generic
