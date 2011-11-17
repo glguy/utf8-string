@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP, BangPatterns #-}
 #if __GLASGOW_HASKELL__ >= 701
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -123,26 +123,35 @@ decode bs = do (c,cs) <- buncons bs
               _ -> (replacement_char, 3)
           _ -> (replacement_char, 2)
       _ -> (replacement_char, 1)
+{-# INLINE decode #-}
 
 
 -- | Split after a given number of characters.
 -- Negative values are treated as if they are 0.
 splitAt :: Int64 -> B.ByteString -> (B.ByteString,B.ByteString)
 splitAt x bs = loop 0 x bs
-  where loop a n _ | n <= 0 = B.splitAt a bs
-        loop a n bs1 = case decode bs1 of
+  where loop !a n _ | n <= 0 = B.splitAt a bs
+        loop !a n bs1 = case decode bs1 of
                          Just (_,y) -> loop (a+y) (n-1) (B.drop y bs1)
                          Nothing    -> (bs, B.empty)
 
 -- | @take n s@ returns the first @n@ characters of @s@.
 -- If @s@ has less than @n@ characters, then we return the whole of @s@.
 take :: Int64 -> B.ByteString -> B.ByteString
-take n bs = fst (splitAt n bs)
+take x bs = loop 0 x bs
+  where loop !a n _ | n <= 0 = B.take a bs
+        loop !a n bs1 = case decode bs1 of
+                         Just (_,y) -> loop (a+y) (n-1) (B.drop y bs1)
+                         Nothing    -> bs
 
 -- | @drop n s@ returns the @s@ without its first @n@ characters.
 -- If @s@ has less than @n@ characters, then we return an empty string.
 drop :: Int64 -> B.ByteString -> B.ByteString
-drop n bs = snd (splitAt n bs)
+drop x bs = loop 0 x bs
+  where loop !a n _ | n <= 0 = B.drop a bs
+        loop !a n bs1 = case decode bs1 of
+                         Just (_,y) -> loop (a+y) (n-1) (B.drop y bs1)
+                         Nothing    -> B.empty
 
 -- | Split a string into two parts:  the first is the longest prefix
 -- that contains only characters that satisfy the predicate; the second
