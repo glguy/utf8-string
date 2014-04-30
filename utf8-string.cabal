@@ -15,6 +15,7 @@ Build-type:         Simple
 cabal-version:      >= 1.2
 
 flag bytestring-in-base
+  default: False
 
 library
   Ghc-options:        -W -O2
