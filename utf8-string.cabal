@@ -26,7 +26,7 @@ library
     build-depends: base >= 2.0 && < 2.2
     cpp-options: -DBYTESTRING_IN_BASE
   else
-    build-depends: base < 2.0 || >= 3, bytestring >= 0.9
+    build-depends: base >= 3 && < 4.8, bytestring >= 0.9
 
   Extensions:         CPP
   Exposed-modules:    Codec.Binary.UTF8.String
