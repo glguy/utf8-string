@@ -7,7 +7,7 @@
 -- Module      :  Codec.Binary.UTF8.String
 -- Copyright   :  (c) Eric Mertens 2007
 -- License     :  BSD3-style (see LICENSE)
--- 
+--
 -- Maintainer:    emertens@galois.com
 -- Stability   :  experimental
 -- Portability :  portable
@@ -21,7 +21,7 @@ module Codec.Binary.UTF8.String (
     , encodeString
     , decodeString
     , encodeChar
-    
+
     , isUTF8Encoded
     , utf8Encode
   ) where
@@ -122,7 +122,7 @@ utf8Encode str
 -- | @isUTF8Encoded str@ tries to recognize input string as being in UTF-8 form.
 isUTF8Encoded :: String -> Bool
 isUTF8Encoded [] = True
-isUTF8Encoded (x:xs) = 
+isUTF8Encoded (x:xs) =
   case ox of
     _ | ox < 0x80  -> isUTF8Encoded xs
       | ox > 0xff  -> False
@@ -135,14 +135,14 @@ isUTF8Encoded (x:xs) =
       | otherwise  -> False
  where
    ox = toW32 x
-   
+
    toW32 :: Char -> Word32
    toW32 ch = fromIntegral (fromEnum ch)
 
-   check1 = 
+   check1 =
     case xs of
      [] -> False
-     c1 : ds 
+     c1 : ds
       | oc .&. 0xc0 /= 0x80 || d < 0x000080 -> False
       | otherwise -> isUTF8Encoded ds
       where
@@ -153,15 +153,15 @@ isUTF8Encoded (x:xs) =
    check_byte i mask overlong = aux i xs (ox .&. mask)
       where
         aux 0 rs acc
-         | overlong <= acc && 
-	   acc <= 0x10ffff &&
+         | overlong <= acc &&
+           acc <= 0x10ffff &&
            (acc < 0xd800 || 0xdfff < acc) &&
            (acc < 0xfffe || 0xffff < acc) = isUTF8Encoded rs
          | otherwise = False
 
         aux n (r:rs) acc
-         | toW32 r .&. 0xc0 == 0x80 = 
-	    aux (n-1) rs  (acc `shiftL` 6 .|. (toW32 r .&. 0x3f))
+         | toW32 r .&. 0xc0 == 0x80 =
+            aux (n-1) rs  (acc `shiftL` 6 .|. (toW32 r .&. 0x3f))
 
         aux _ _  _ = False
 
