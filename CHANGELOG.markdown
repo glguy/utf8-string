@@ -1,3 +1,7 @@
+1
+-----
+* Remove out all the old utf8 IO support. GHC supports utf8 now.
+
 0.3.8
 -----
 * Performance tweaks
