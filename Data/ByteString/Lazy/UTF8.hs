@@ -38,15 +38,62 @@ module Data.ByteString.Lazy.UTF8
 import Data.Bits
 import Data.Word
 import Data.Int
+import Foreign.Storable
+import Foreign.Ptr
+import Foreign.ForeignPtr
+import Data.Char        (ord)
+import Control.Exception        (assert)
 import qualified Data.ByteString.Lazy as B
+import qualified Data.ByteString.Lazy.Internal as B
+import qualified Data.ByteString.Internal as S
+import System.IO.Unsafe
 import Prelude hiding (take,drop,splitAt,span,break,foldr,foldl,length,lines)
 
-import Codec.Binary.UTF8.String(encode)
 import Codec.Binary.UTF8.Generic (buncons)
+
+---------------------------------------------------------------------
+-- ENCODING
 
 -- | Converts a Haskell string into a UTF8 encoded bytestring.
 fromString :: String -> B.ByteString
-fromString xs = B.pack (encode xs)
+fromString [] = B.empty
+fromString xs = packChunks 32 xs
+  where
+    packChunks n xs = case packUptoLenBytes n xs of
+        (bs, []) -> B.chunk bs B.Empty
+        (bs, xs) -> B.Chunk bs (packChunks (min (n * 2) B.smallChunkSize) xs)
+
+    packUptoLenBytes :: Int -> String -> (S.ByteString, String)
+    packUptoLenBytes len xs = unsafeCreateUptoN' len $ \ptr -> do
+        (end, xs) <- go ptr (ptr `plusPtr` (len-4)) xs
+        return (end `minusPtr` ptr, xs)
+
+    -- end is the last position at which you can write a whole 4 byte sequence safely
+    go :: Ptr Word8 -> Ptr Word8 -> String -> IO (Ptr Word8, String)
+    go !ptr !end xs | ptr > end = return (ptr, xs)
+    go !ptr !_   [] = return (ptr, [])
+    go !ptr !end (x:xs)
+        | x <= '\x7f' = poke ptr (S.c2w x) >> go (plusPtr ptr 1) end xs
+        | otherwise = case ord x of
+            oc | oc <= 0x7ff -> do
+                    poke ptr $ fromIntegral $ 0xc0 + (oc `shiftR` 6)
+                    pokeElemOff ptr 1 $ fromIntegral $ 0x80 + oc .&. 0x3f
+                    go (plusPtr ptr 2) end xs
+               | oc <= 0xffff -> do
+                    poke ptr $ fromIntegral $ 0xe0 + (oc `shiftR` 12)
+                    pokeElemOff ptr 1 $ fromIntegral $ 0x80 + ((oc `shiftR` 6) .&. 0x3f)
+                    pokeElemOff ptr 2 $ fromIntegral $ 0x80 + oc .&. 0x3f
+                    go (plusPtr ptr 3) end xs
+               | otherwise -> do
+                    poke ptr $ fromIntegral $ 0xf0 + (oc `shiftR` 18)
+                    pokeElemOff ptr 1 $ fromIntegral $ 0x80 + ((oc `shiftR` 12) .&. 0x3f)
+                    pokeElemOff ptr 2 $ fromIntegral $ 0x80 + ((oc `shiftR` 6) .&. 0x3f)
+                    pokeElemOff ptr 3 $ fromIntegral $ 0x80 + oc .&. 0x3f
+                    go (plusPtr ptr 4) end xs
+
+
+---------------------------------------------------------------------
+-- DECODING
 
 -- | Convert a UTF8 encoded bytestring into a Haskell string.
 -- Invalid characters are replaced with '\xFFFD'.
@@ -221,3 +268,20 @@ lines' bs = case B.elemIndex 10 bs of
                         in xs : lines' ys
               Nothing -> [bs]
 
+
+---------------------------------------------------------------------
+-- COPIED FROM BYTESTRING
+-- These functions are copied verbatum from Data.ByteString.Internal
+-- I suspect their lack of export is an oversight
+
+unsafeCreateUptoN' :: Int -> (Ptr Word8 -> IO (Int, a)) -> (S.ByteString, a)
+unsafeCreateUptoN' l f = unsafeDupablePerformIO (createUptoN' l f)
+{-# INLINE unsafeCreateUptoN' #-}
+
+-- | Create ByteString of up to size @l@ and use action @f@ to fill it's contents which returns its true size.
+createUptoN' :: Int -> (Ptr Word8 -> IO (Int, a)) -> IO (S.ByteString, a)
+createUptoN' l f = do
+    fp <- S.mallocByteString l
+    (l', res) <- withForeignPtr fp $ \p -> f p
+    assert (l' <= l) $ return (S.PS fp 0 l', res)
+{-# INLINE createUptoN' #-}
