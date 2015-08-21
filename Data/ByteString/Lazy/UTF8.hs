@@ -38,15 +38,73 @@ module Data.ByteString.Lazy.UTF8
 import Data.Bits
 import Data.Word
 import Data.Int
+import Foreign.Storable
+import Foreign.Ptr
+import Foreign.ForeignPtr
+import Data.Char        (ord)
+import Control.Exception        (assert)
 import qualified Data.ByteString.Lazy as B
+import qualified Data.ByteString.Lazy.Internal as B
+import qualified Data.ByteString.Internal as S
+import System.IO.Unsafe
 import Prelude hiding (take,drop,splitAt,span,break,foldr,foldl,length,lines)
 
-import Codec.Binary.UTF8.String(encode)
 import Codec.Binary.UTF8.Generic (buncons)
+
+---------------------------------------------------------------------
+-- ENCODING
 
 -- | Converts a Haskell string into a UTF8 encoded bytestring.
 fromString :: String -> B.ByteString
-fromString xs = B.pack (encode xs)
+fromString xs = packBytes (encode xs)
+
+packBytes :: [Word8] -> B.ByteString
+packBytes cs0 =
+    packChunks 32 cs0
+  where
+    packChunks n cs = case packUptoLenBytes n cs of
+      (bs, [])  -> B.chunk bs B.Empty
+      (bs, cs') -> B.Chunk bs (packChunks (min (n * 2) B.smallChunkSize) cs')
+
+
+packUptoLenBytes :: Int -> [Word8] -> (S.ByteString, [Word8])
+packUptoLenBytes len xs0 =
+    unsafeCreateUptoN' len $ \p -> go p len xs0
+  where
+    go !_ !n []     = return (len-n, [])
+    go !_ !0 xs     = return (len,   xs)
+    go !p !n (x:xs) = poke p x >> go (p `plusPtr` 1) (n-1) xs
+
+
+-- | Encode a single Haskell Char to a list of Word8 values, in UTF8 format.
+encodeChar :: Char -> [Word8]
+encodeChar = map fromIntegral . go . ord
+ where
+  go oc
+   | oc <= 0x7f       = [oc]
+
+   | oc <= 0x7ff      = [ 0xc0 + (oc `shiftR` 6)
+                        , 0x80 + oc .&. 0x3f
+                        ]
+
+   | oc <= 0xffff     = [ 0xe0 + (oc `shiftR` 12)
+                        , 0x80 + ((oc `shiftR` 6) .&. 0x3f)
+                        , 0x80 + oc .&. 0x3f
+                        ]
+   | otherwise        = [ 0xf0 + (oc `shiftR` 18)
+                        , 0x80 + ((oc `shiftR` 12) .&. 0x3f)
+                        , 0x80 + ((oc `shiftR` 6) .&. 0x3f)
+                        , 0x80 + oc .&. 0x3f
+                        ]
+
+
+-- | Encode a Haskell String to a list of Word8 values, in UTF8 format.
+encode :: String -> [Word8]
+encode = concatMap encodeChar
+
+
+---------------------------------------------------------------------
+-- DECODING
 
 -- | Convert a UTF8 encoded bytestring into a Haskell string.
 -- Invalid characters are replaced with '\xFFFD'.
@@ -221,3 +279,20 @@ lines' bs = case B.elemIndex 10 bs of
                         in xs : lines' ys
               Nothing -> [bs]
 
+
+---------------------------------------------------------------------
+-- COPIED FROM BYTESTRING
+-- These functions are copied verbatum from Data.ByteString.Internal
+-- I suspect their lack of export is an oversight
+
+unsafeCreateUptoN' :: Int -> (Ptr Word8 -> IO (Int, a)) -> (S.ByteString, a)
+unsafeCreateUptoN' l f = unsafeDupablePerformIO (createUptoN' l f)
+{-# INLINE unsafeCreateUptoN' #-}
+
+-- | Create ByteString of up to size @l@ and use action @f@ to fill it's contents which returns its true size.
+createUptoN' :: Int -> (Ptr Word8 -> IO (Int, a)) -> IO (S.ByteString, a)
+createUptoN' l f = do
+    fp <- S.mallocByteString l
+    (l', res) <- withForeignPtr fp $ \p -> f p
+    assert (l' <= l) $ return (S.PS fp 0 l', res)
+{-# INLINE createUptoN' #-}
