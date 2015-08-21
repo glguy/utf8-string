@@ -56,17 +56,17 @@ import Codec.Binary.UTF8.Generic (buncons)
 
 -- | Converts a Haskell string into a UTF8 encoded bytestring.
 fromString :: String -> B.ByteString
-fromString [] = B.empty
-fromString xs = packChunks 32 xs
+fromString []  = B.empty
+fromString xs0 = packChunks 32 xs0
   where
     packChunks n xs = case packUptoLenBytes n xs of
-        (bs, []) -> B.chunk bs B.Empty
-        (bs, xs) -> B.Chunk bs (packChunks (min (n * 2) B.smallChunkSize) xs)
+        (bs, [] ) -> B.chunk bs B.Empty
+        (bs, xs') -> B.Chunk bs (packChunks (min (n * 2) B.smallChunkSize) xs')
 
     packUptoLenBytes :: Int -> String -> (S.ByteString, String)
     packUptoLenBytes len xs = unsafeCreateUptoN' len $ \ptr -> do
-        (end, xs) <- go ptr (ptr `plusPtr` (len-4)) xs
-        return (end `minusPtr` ptr, xs)
+        (end, xs') <- go ptr (ptr `plusPtr` (len-4)) xs
+        return (end `minusPtr` ptr, xs')
 
     -- end is the last position at which you can write a whole 4 byte sequence safely
     go :: Ptr Word8 -> Ptr Word8 -> String -> IO (Ptr Word8, String)
