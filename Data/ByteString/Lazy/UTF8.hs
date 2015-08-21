@@ -56,51 +56,40 @@ import Codec.Binary.UTF8.Generic (buncons)
 
 -- | Converts a Haskell string into a UTF8 encoded bytestring.
 fromString :: String -> B.ByteString
-fromString xs = packBytes (encode xs)
-
-packBytes :: [Word8] -> B.ByteString
-packBytes cs0 =
-    packChunks 32 cs0
+fromString [] = B.empty
+fromString xs = packChunks 32 xs
   where
-    packChunks n cs = case packUptoLenBytes n cs of
-      (bs, [])  -> B.chunk bs B.Empty
-      (bs, cs') -> B.Chunk bs (packChunks (min (n * 2) B.smallChunkSize) cs')
+    packChunks n xs = case packUptoLenBytes n xs of
+        (bs, []) -> B.chunk bs B.Empty
+        (bs, xs) -> B.Chunk bs (packChunks (min (n * 2) B.smallChunkSize) xs)
 
+    packUptoLenBytes :: Int -> String -> (S.ByteString, String)
+    packUptoLenBytes len xs = unsafeCreateUptoN' len $ \ptr -> do
+        (end, xs) <- go ptr (ptr `plusPtr` (len-4)) xs
+        return (end `minusPtr` ptr, xs)
 
-packUptoLenBytes :: Int -> [Word8] -> (S.ByteString, [Word8])
-packUptoLenBytes len xs0 =
-    unsafeCreateUptoN' len $ \p -> go p len xs0
-  where
-    go !_ !n []     = return (len-n, [])
-    go !_ !0 xs     = return (len,   xs)
-    go !p !n (x:xs) = poke p x >> go (p `plusPtr` 1) (n-1) xs
-
-
--- | Encode a single Haskell Char to a list of Word8 values, in UTF8 format.
-encodeChar :: Char -> [Word8]
-encodeChar = map fromIntegral . go . ord
- where
-  go oc
-   | oc <= 0x7f       = [oc]
-
-   | oc <= 0x7ff      = [ 0xc0 + (oc `shiftR` 6)
-                        , 0x80 + oc .&. 0x3f
-                        ]
-
-   | oc <= 0xffff     = [ 0xe0 + (oc `shiftR` 12)
-                        , 0x80 + ((oc `shiftR` 6) .&. 0x3f)
-                        , 0x80 + oc .&. 0x3f
-                        ]
-   | otherwise        = [ 0xf0 + (oc `shiftR` 18)
-                        , 0x80 + ((oc `shiftR` 12) .&. 0x3f)
-                        , 0x80 + ((oc `shiftR` 6) .&. 0x3f)
-                        , 0x80 + oc .&. 0x3f
-                        ]
-
-
--- | Encode a Haskell String to a list of Word8 values, in UTF8 format.
-encode :: String -> [Word8]
-encode = concatMap encodeChar
+    -- end is the last position at which you can write a whole 4 byte sequence safely
+    go :: Ptr Word8 -> Ptr Word8 -> String -> IO (Ptr Word8, String)
+    go !ptr !end xs | ptr > end = return (ptr, xs)
+    go !ptr !_   [] = return (ptr, [])
+    go !ptr !end (x:xs)
+        | x <= '\x7f' = poke ptr (S.c2w x) >> go (plusPtr ptr 1) end xs
+        | otherwise = case ord x of
+            oc | oc <= 0x7ff -> do
+                    poke ptr $ fromIntegral $ 0xc0 + (oc `shiftR` 6)
+                    pokeElemOff ptr 1 $ fromIntegral $ 0x80 + oc .&. 0x3f
+                    go (plusPtr ptr 2) end xs
+               | oc <= 0xffff -> do
+                    poke ptr $ fromIntegral $ 0xe0 + (oc `shiftR` 12)
+                    pokeElemOff ptr 1 $ fromIntegral $ 0x80 + ((oc `shiftR` 6) .&. 0x3f)
+                    pokeElemOff ptr 2 $ fromIntegral $ 0x80 + oc .&. 0x3f
+                    go (plusPtr ptr 3) end xs
+               | otherwise -> do
+                    poke ptr $ fromIntegral $ 0xf0 + (oc `shiftR` 18)
+                    pokeElemOff ptr 1 $ fromIntegral $ 0x80 + ((oc `shiftR` 12) .&. 0x3f)
+                    pokeElemOff ptr 2 $ fromIntegral $ 0x80 + ((oc `shiftR` 6) .&. 0x3f)
+                    pokeElemOff ptr 3 $ fromIntegral $ 0x80 + oc .&. 0x3f
+                    go (plusPtr ptr 4) end xs
 
 
 ---------------------------------------------------------------------
