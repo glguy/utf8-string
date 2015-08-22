@@ -46,10 +46,15 @@ import Control.Exception        (assert)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Internal as B
 import qualified Data.ByteString.Internal as S
-import System.IO.Unsafe
 import Prelude hiding (take,drop,splitAt,span,break,foldr,foldl,length,lines)
 
 import Codec.Binary.UTF8.Generic (buncons)
+
+#if MIN_VERSION_base(4,4,0)
+import System.IO.Unsafe (unsafeDupablePerformIO)
+#else
+import GHC.IO (unsafeDupablePerformIO)
+#endif
 
 ---------------------------------------------------------------------
 -- ENCODING

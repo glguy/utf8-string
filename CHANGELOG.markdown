@@ -1,3 +1,7 @@
+1.0.1.1
+-----
+* Build correctly on GHC-7.0 (#14)
+
 1.0.1
 -----
 * Improve the performance of Data.ByteString.Lazy.UTF8.fromString. (Thanks, ndmitchell)
