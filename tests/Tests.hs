@@ -16,7 +16,7 @@ test_2 = TestLabel "2 Boundary condition test cases" $
   TestList [test_2_1, test_2_2, test_2_3]
 
 test_2_1 = TestLabel "2.1 First possible sequence of a certain length" $
-  TestList $ map TestCase $ 
+  TestList $ map TestCase $
   [ assertEqual "2.1.1, " "\0\0" (decode [0, 0])
   , assertEqual "2.1.2, " "\x80\0" (decode [0xc2, 0x80, 0])
   , assertEqual "2.1.3, " "\x800\0" (decode [0xe0, 0xa0, 0x80, 0])
@@ -26,7 +26,7 @@ test_2_1 = TestLabel "2.1 First possible sequence of a certain length" $
   ]
 
 test_2_2 = TestLabel "2.2 Last possible sequence of a certain length" $
-  TestList $ map TestCase $ 
+  TestList $ map TestCase $
   [ assertEqual "2.2.1, " "\x7f\0" (decode [0x7f, 0])
   , assertEqual "2.2.2, " "\x7ff\0" (decode [0xdf, 0xbf, 0])
   , assertEqual "2.2.3, " "\xfffd\0" (decode [0xef, 0xbf, 0xbf, 0])
@@ -36,7 +36,7 @@ test_2_2 = TestLabel "2.2 Last possible sequence of a certain length" $
   ]
 
 test_2_3 = TestLabel "2.3 Other boundary conditions" $
-  TestList $ map TestCase $ 
+  TestList $ map TestCase $
   [ assertEqual "2.3.1, " "\xd7ff\0" (decode [0xed, 0x9f, 0xbf, 0])
   , assertEqual "2.3.2, " "\xe000\0" (decode [0xee, 0x80, 0x80, 0])
   , assertEqual "2.3.3, " "\xfffd\0" (decode [0xef, 0xbf, 0xbd, 0])
@@ -92,7 +92,7 @@ test_3_3 = TestLabel "3.3 Sequences with last continuation byte missing" $
   ]
 
 test_3_4 = TestLabel "3.4 Concatenation of incomplete sequences" $
-  TestCase $ assertEqual "3.4, " 
+  TestCase $ assertEqual "3.4, "
   (replicate 10 '\xfffd')
   (decode [0xc0, 0xe0, 0x80, 0xf0, 0x80, 0x80, 0xf8, 0x80, 0x80, 0x80,
    0xfc, 0x80, 0x80, 0x80,0x80, 0xdf, 0xef, 0xbf, 0xf7, 0xbf, 0xbf,
@@ -148,7 +148,7 @@ test_5_1 = TestLabel "5.1 Single UTF-16 surrogates" $
   , assertEqual "5.1.6, " "\xfffd " (decode [0xed,0xbe,0x80,0x20])
   , assertEqual "5.1.7, " "\xfffd " (decode [0xed,0xbf,0xbf,0x20])
   ]
- 
+
 test_5_2 = TestLabel "5.2 Paired UTF-16 surrogates" $
   TestList $ map TestCase $
   [ assertEqual "5.2.1, " res (decode [0xed,0xa0,0x80,0xed,0xb0,0x80,0x20])
@@ -161,7 +161,7 @@ test_5_2 = TestLabel "5.2 Paired UTF-16 surrogates" $
   , assertEqual "5.2.8, " res (decode [0xed,0xaf,0xbf,0xed,0xbf,0xbf,0x20])
   ]
   where res = "\xfffd\xfffd "
- 
+
 test_5_3 = TestLabel "5.3 Other illegal code positions" $
   TestList $ map TestCase $
   [ assertEqual "5.3.1, " "\xfffd " (decode [0xef, 0xbf, 0xbe, 0x20])
