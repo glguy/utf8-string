@@ -48,6 +48,7 @@ import Prelude hiding (null,take,drop,span,break
                       ,foldl,foldr,length,lines,splitAt)
 import qualified Codec.Binary.UTF8.Generic as G
 import Codec.Binary.UTF8.Generic (UTF8Bytes)
+import qualified Data.String as S
 
 -- | The type of strings that are represented using the UTF8 encoding.
 -- The parameter is the type of the container for the representation.
@@ -55,6 +56,9 @@ newtype UTF8 string = Str string deriving (Eq,Ord)   -- XXX: Is this OK?
 
 instance UTF8Bytes string index => Show (UTF8 string) where
   show x = show (toString x)
+
+instance UTF8Bytes string index => S.IsString (UTF8 string) where
+  fromString = fromString
 
 fromRep :: string -> UTF8 string
 fromRep = Str
