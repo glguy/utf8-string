@@ -33,11 +33,13 @@ import Data.Char        (chr,ord)
 default(Int)
 
 -- | Encode a string using 'encode' and store the result in a 'String'.
+-- | Note: prefer 'encode' over this function, as it is easy to mistakenly
+-- | encode the same string more than once.
 encodeString :: String -> String
 encodeString xs = map (toEnum . fromEnum) (encode xs)
 
 -- | Decode a string using 'decode' using a 'String' as input.
--- | This is not safe but it is necessary if UTF-8 encoded text
+-- | Note: this is not safe but it is necessary if UTF-8 encoded text
 -- | has been loaded into a 'String' prior to being decoded.
 decodeString :: String -> String
 decodeString xs = decode (map (toEnum . fromEnum) xs)
