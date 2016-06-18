@@ -2,6 +2,9 @@
 #if __GLASGOW_HASKELL__ >= 701
 {-# LANGUAGE Trustworthy #-}
 #endif
+#if __GLASGOW_HASKELL__ >= 705
+{-# LANGUAGE DeriveGeneric #-}
+#endif
 --
 -- |
 -- Module      :  Data.String.UTF8
@@ -49,10 +52,17 @@ import Prelude hiding (null,take,drop,span,break
 import qualified Codec.Binary.UTF8.Generic as G
 import Codec.Binary.UTF8.Generic (UTF8Bytes)
 import qualified Data.String as S
+#if __GLASGOW_HASKELL__ >= 705
+import GHC.Generics
+#endif
 
 -- | The type of strings that are represented using the UTF8 encoding.
 -- The parameter is the type of the container for the representation.
-newtype UTF8 string = Str string deriving (Eq,Ord)   -- XXX: Is this OK?
+newtype UTF8 string = Str string deriving (Eq,Ord
+#if __GLASGOW_HASKELL__ >= 705
+                                          ,Generic
+#endif
+                                          )   -- XXX: Is this OK?
 
 instance UTF8Bytes string index => Show (UTF8 string) where
   show x = show (toString x)
