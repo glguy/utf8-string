@@ -24,7 +24,7 @@ source-repository head
 library
   Ghc-options:        -W -O2
 
-  build-depends:      base >= 4.3 && < 4.10, bytestring >= 0.9
+  build-depends:      base >= 4.3 && < 4.11, bytestring >= 0.9
 
   Exposed-modules:    Codec.Binary.UTF8.String
                       Codec.Binary.UTF8.Generic
@@ -37,5 +37,5 @@ library
 test-suite unit-tests
   type:               exitcode-stdio-1.0
   main-is:            tests/Tests.hs
-  build-depends:      base, HUnit >= 1.3 && < 1.4
+  build-depends:      base, HUnit >= 1.3 && < 1.7
   default-language:   Haskell2010
