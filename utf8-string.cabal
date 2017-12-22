@@ -24,7 +24,7 @@ source-repository head
 library
   Ghc-options:        -W -O2
 
-  build-depends:      base >= 4.3 && < 4.11, bytestring >= 0.9
+  build-depends:      base >= 4.3 && < 5, bytestring >= 0.9
 
   Exposed-modules:    Codec.Binary.UTF8.String
                       Codec.Binary.UTF8.Generic
