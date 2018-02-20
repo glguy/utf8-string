@@ -26,6 +26,7 @@ module Data.ByteString.UTF8
   , drop
   , span
   , break
+  , fromChar
   , fromString
   , toString
   , foldl
@@ -42,6 +43,10 @@ import Prelude hiding (take,drop,splitAt,span,break,foldr,foldl,length,lines)
 
 import Codec.Binary.UTF8.String(encode)
 import Codec.Binary.UTF8.Generic (buncons)
+
+-- | Converts a Haskell char into a UTF8 encoded bytestring.
+fromChar :: Char -> B.ByteString
+fromChar x = fromString [x]
 
 -- | Converts a Haskell string into a UTF8 encoded bytestring.
 fromString :: String -> B.ByteString
