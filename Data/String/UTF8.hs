@@ -72,7 +72,7 @@ fromString :: UTF8Bytes string index => String -> UTF8 string
 fromString xs = Str (G.fromString xs)
 
 -- | Convert a UTF8 encoded string into a Haskell string.
--- Invalid characters are replaced by 'replacement_char'.
+-- Invalid characters are replaced by 'G.replacement_char'.
 -- Complexity: linear.
 toString :: UTF8Bytes string index => UTF8 string -> String
 toString (Str xs) = G.toString xs
@@ -83,7 +83,6 @@ null (Str x) = G.null x
 
 -- | Split after a given number of characters.
 -- Negative values are treated as if they are 0.
--- See also 'bytesSplitAt'.
 splitAt :: UTF8Bytes string index
         => index -> UTF8 string -> (UTF8 string, UTF8 string)
 splitAt x (Str bs)  = case G.splitAt x bs of
@@ -120,7 +119,7 @@ drop n (Str bs) = Str (G.drop n bs)
 -- | Split a string into two parts:  the first is the longest prefix
 -- that contains only characters that satisfy the predicate; the second
 -- part is the rest of the string.
--- Invalid characters are passed as '\0xFFFD' to the predicate.
+-- Invalid characters are passed as @\'\\0xFFFD\'@ to the predicate.
 span :: UTF8Bytes string index
      => (Char -> Bool) -> UTF8 string -> (UTF8 string, UTF8 string)
 span p (Str bs) = case G.span p bs of
@@ -129,14 +128,14 @@ span p (Str bs) = case G.span p bs of
 -- | Split a string into two parts:  the first is the longest prefix
 -- that contains only characters that do not satisfy the predicate; the second
 -- part is the rest of the string.
--- Invalid characters are passed as 'replacement_char' to the predicate.
+-- Invalid characters are passed as 'G.replacement_char' to the predicate.
 break :: UTF8Bytes string index
       => (Char -> Bool) -> UTF8 string -> (UTF8 string, UTF8 string)
 break p (Str bs)  = case G.break p bs of
                       (s1,s2) -> (Str s1, Str s2)
 
 -- | Get the first character of a byte string, if any.
--- Invalid characters are replaced by 'replacement_char'.
+-- Invalid characters are replaced by 'G.replacement_char'.
 uncons :: UTF8Bytes string index
        => UTF8 string -> Maybe (Char, UTF8 string)
 uncons (Str x)  = do (c,y) <- G.uncons x
@@ -145,7 +144,7 @@ uncons (Str x)  = do (c,y) <- G.uncons x
 -- | Extract the first character for the underlying representation,
 -- if one is available.  It also returns the number of bytes used
 -- in the representation of the character.
--- See also 'uncons', 'dropBytes'.
+-- See also 'uncons'.
 decode :: UTF8Bytes string index => UTF8 string -> Maybe (Char, index)
 decode (Str x)  = G.decode x
 
@@ -165,14 +164,14 @@ length :: UTF8Bytes string index => UTF8 string -> index
 length (Str b) = G.length b
 
 -- | Split a string into a list of lines.
--- Lines are terminated by '\n' or the end of the string.
+-- Lines are terminated by @\'\\n\'@ or the end of the string.
 -- Empty lines may not be terminated by the end of the string.
--- See also 'lines\''.
+-- See also 'lines''.
 lines :: UTF8Bytes string index => UTF8 string -> [UTF8 string]
 lines (Str b) = map Str (G.lines b)   -- XXX: unnecessary map
 
 -- | Split a string into a list of lines.
--- Lines are terminated by '\n' or the end of the string.
+-- Lines are terminated by @\'\\n\'@ or the end of the string.
 -- Empty lines may not be terminated by the end of the string.
 -- This function preserves the terminators.
 -- See also 'lines'.
