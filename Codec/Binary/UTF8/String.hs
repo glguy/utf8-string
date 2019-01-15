@@ -12,7 +12,7 @@
 -- Stability   :  experimental
 -- Portability :  portable
 --
--- Support for encoding UTF8 Strings to and from @[Word8]@
+-- Support for encoding UTF8 Strings to and from @['Word8']@
 --
 
 module Codec.Binary.UTF8.String (
@@ -37,15 +37,15 @@ encodeString :: String -> String
 encodeString xs = map (toEnum . fromEnum) (encode xs)
 
 -- | Decode a string using 'decode' using a 'String' as input.
--- | This is not safe but it is necessary if UTF-8 encoded text
--- | has been loaded into a 'String' prior to being decoded.
+-- This is not safe but it is necessary if UTF-8 encoded text
+-- has been loaded into a 'String' prior to being decoded.
 decodeString :: String -> String
 decodeString xs = decode (map (toEnum . fromEnum) xs)
 
 replacement_character :: Char
 replacement_character = '\xfffd'
 
--- | Encode a single Haskell Char to a list of Word8 values, in UTF8 format.
+-- | Encode a single Haskell 'Char' to a list of 'Word8' values, in UTF8 format.
 encodeChar :: Char -> [Word8]
 encodeChar = map fromIntegral . go . ord
  where
@@ -67,12 +67,12 @@ encodeChar = map fromIntegral . go . ord
                         ]
 
 
--- | Encode a Haskell String to a list of Word8 values, in UTF8 format.
+-- | Encode a Haskell 'String' to a list of 'Word8' values, in UTF8 format.
 encode :: String -> [Word8]
 encode = concatMap encodeChar
 
 --
--- | Decode a UTF8 string packed into a list of Word8 values, directly to String
+-- | Decode a UTF8 string packed into a list of 'Word8' values, directly to 'String'
 --
 decode :: [Word8] -> String
 decode [    ] = ""

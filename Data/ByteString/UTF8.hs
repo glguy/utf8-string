@@ -53,7 +53,7 @@ fromString :: String -> B.ByteString
 fromString xs = B.pack (encode xs)
 
 -- | Convert a UTF8 encoded bytestring into a Haskell string.
--- Invalid characters are replaced with '\xFFFD'.
+-- Invalid characters are replaced with @\'\\0xFFFD\'@.
 toString :: B.ByteString -> String
 toString bs = foldr (:) [] bs
 
@@ -65,7 +65,7 @@ replacement_char = '\xfffd'
 -- Returns 'Nothing' if there are no more bytes in the byte string.
 -- Otherwise, it returns a decoded character and the number of
 -- bytes used in its representation.
--- Errors are replaced by character '\0xFFFD'.
+-- Errors are replaced by character @\'\\0xFFFD\'@.
 
 -- XXX: Should we combine sequences of errors into a single replacement
 -- character?
@@ -151,7 +151,7 @@ drop n bs = snd (splitAt n bs)
 -- | Split a string into two parts:  the first is the longest prefix
 -- that contains only characters that satisfy the predicate; the second
 -- part is the rest of the string.
--- Invalid characters are passed as '\0xFFFD' to the predicate.
+-- Invalid characters are passed as @\'\\0xFFFD\'@ to the predicate.
 span :: (Char -> Bool) -> B.ByteString -> (B.ByteString, B.ByteString)
 span p bs = loop 0 bs
   where loop a cs = case decode cs of
@@ -161,12 +161,12 @@ span p bs = loop 0 bs
 -- | Split a string into two parts:  the first is the longest prefix
 -- that contains only characters that do not satisfy the predicate; the second
 -- part is the rest of the string.
--- Invalid characters are passed as '\0xFFFD' to the predicate.
+-- Invalid characters are passed as @\'\\0xFFFD\'@ to the predicate.
 break :: (Char -> Bool) -> B.ByteString -> (B.ByteString, B.ByteString)
 break p bs = span (not . p) bs
 
 -- | Get the first character of a byte string, if any.
--- Malformed characters are replaced by '\0xFFFD'.
+-- Malformed characters are replaced by @\'\\0xFFFD\'@.
 uncons :: B.ByteString -> Maybe (Char,B.ByteString)
 uncons bs = do (c,n) <- decode bs
                return (c, B.drop n bs)
@@ -194,9 +194,9 @@ length b = loop 0 b
                       Nothing -> n
 
 -- | Split a string into a list of lines.
--- Lines are terminated by '\n' or the end of the string.
+-- Lines are terminated by @\'\\n\'@ or the end of the string.
 -- Empty lines may not be terminated by the end of the string.
--- See also 'lines\''.
+-- See also 'lines''.
 lines :: B.ByteString -> [B.ByteString]
 lines bs | B.null bs  = []
 lines bs = case B.elemIndex 10 bs of
@@ -205,7 +205,7 @@ lines bs = case B.elemIndex 10 bs of
              Nothing -> [bs]
 
 -- | Split a string into a list of lines.
--- Lines are terminated by '\n' or the end of the string.
+-- Lines are terminated by @\'\\n\'@ or the end of the string.
 -- Empty lines may not be terminated by the end of the string.
 -- This function preserves the terminators.
 -- See also 'lines'.
