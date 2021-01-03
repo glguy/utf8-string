@@ -1,3 +1,9 @@
+1.0.2
+-----
+* Add fromChar
+* Add IsString UTF8 instance
+* Fixup documentation and tests
+
 1.0.1.1
 -----
 * Build correctly on GHC-7.0 (#14)
