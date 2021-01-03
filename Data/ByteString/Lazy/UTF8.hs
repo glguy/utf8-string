@@ -288,5 +288,10 @@ createUptoN' :: Int -> (Ptr Word8 -> IO (Int, a)) -> IO (S.ByteString, a)
 createUptoN' l f = do
     fp <- S.mallocByteString l
     (l', res) <- withForeignPtr fp $ \p -> f p
-    assert (l' <= l) $ return (S.PS fp 0 l', res)
+#if MIN_VERSION_bytestring(0,11,0)
+    let bs = S.BS fp l'
+#else
+    let bs = S.PS fp 0 l'
+#endif
+    assert (l' <= l) $ return (bs, res)
 {-# INLINE createUptoN' #-}
