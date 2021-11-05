@@ -26,7 +26,9 @@ module Codec.Binary.UTF8.String (
     , utf8Encode
   ) where
 
+#if __GLASGOW_HASKELL__ > 710
 import qualified Data.List.NonEmpty as NE
+#endif
 import Data.Word        (Word8,Word32)
 import Data.Bits        ((.|.),(.&.),shiftL,shiftR)
 import Data.Char        (chr,ord)
@@ -47,6 +49,28 @@ replacement_character :: Char
 replacement_character = '\xfffd'
 
 -- | Encode a single Haskell 'Char' to a list of 'Word8' values, in UTF8 format.
+#if __GLASGOW_HASKELL__ < 802
+encodeChar :: Char -> (Word8, [Word8])
+encodeChar = (\(x, xs) -> (fromIntegral x, fmap fromIntegral xs)) . go . ord
+ where
+  go oc
+   | oc <= 0x7f       = ( oc
+                        , [])
+
+   | oc <= 0x7ff      = ( 0xc0 + (oc `shiftR` 6)
+                        , [ 0x80 + oc .&. 0x3f ])
+
+   | oc <= 0xffff     = ( 0xe0 + (oc `shiftR` 12)
+                        , [ 0x80 + ((oc `shiftR` 6) .&. 0x3f)
+                          , 0x80 + oc .&. 0x3f
+                          ])
+                        
+   | otherwise        = ( 0xf0 + (oc `shiftR` 18)
+                        , [ 0x80 + ((oc `shiftR` 12) .&. 0x3f)
+                          , 0x80 + ((oc `shiftR` 6) .&. 0x3f)
+                          , 0x80 + oc .&. 0x3f
+                          ])
+#else
 encodeChar :: Char -> NE.NonEmpty Word8
 encodeChar = fmap fromIntegral . go . ord
  where
@@ -61,16 +85,21 @@ encodeChar = fmap fromIntegral . go . ord
                           [ 0x80 + ((oc `shiftR` 6) .&. 0x3f)
                           , 0x80 + oc .&. 0x3f
                           ]
+
    | otherwise        = 0xf0 + (oc `shiftR` 18) NE.:|
                           [ 0x80 + ((oc `shiftR` 12) .&. 0x3f)
                           , 0x80 + ((oc `shiftR` 6) .&. 0x3f)
                           , 0x80 + oc .&. 0x3f
                           ]
-
+#endif
 
 -- | Encode a Haskell 'String' to a list of 'Word8' values, in UTF8 format.
 encode :: String -> [Word8]
+#if __GLASGOW_HASKELL__ < 802
+encode = concatMap ((\(x, xs) -> x:xs) . encodeChar) 
+#else
 encode = concatMap (NE.toList . encodeChar) 
+#endif
 
 --
 -- | Decode a UTF8 string packed into a list of 'Word8' values, directly to 'String'
