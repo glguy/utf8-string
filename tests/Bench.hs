@@ -84,7 +84,7 @@ tests =
     ]
 
 
--- unpackCStringUtf8# wants \0 termianted strings. rewrite it to take a
+-- unpackCStringUtf8# wants \0 terminated strings. rewrite it to take a
 -- length instead, and we avoid the copy in useAsCString.
 unpackCStringUTF8 :: B.ByteString -> [Char]
 unpackCStringUTF8 b = unsafePerformIO $ B.unsafeUseAsCString b $ \(Ptr a) ->
